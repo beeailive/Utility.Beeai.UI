@@ -1,0 +1,445 @@
+<!-- Header with back button and application name -->
+<div class="row mb-3">
+  <div class="col-12">
+    <div class="d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-link p-0" (click)="goBack()">
+          <i class="feather icon-arrow-left" style="font-size: 24px;"></i>
+        </button>
+        <div>
+          <h4 class="mb-0">{{ application?.application?.name || 'Loading...' }}</h4>
+          <small class="text-muted">{{ application?.application?.description }}</small>
+        </div>
+      </div>
+      <button class="btn btn-icon btn-link-danger">
+        <i class="feather icon-trash-2"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="row">
+  <div class="col-12">
+    <app-card [options]="false">
+      <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item">
+          <a 
+            class="nav-link" 
+            [class.active]="activeTab === 'devices'"
+            (click)="setActiveTab('devices')"
+            role="tab"
+            style="cursor: pointer;">
+            Devices
+          </a>
+        </li>
+        <li class="nav-item">
+          <a 
+            class="nav-link" 
+            [class.active]="activeTab === 'fuota'"
+            (click)="setActiveTab('fuota')"
+            role="tab"
+            style="cursor: pointer;">
+            FUOTA
+          </a>
+        </li>
+        <li class="nav-item">
+          <a 
+            class="nav-link" 
+            [class.active]="activeTab === 'multicast-groups'"
+            (click)="setActiveTab('multicast-groups')"
+            role="tab"
+            style="cursor: pointer;">
+            Multicast groups
+          </a>
+        </li>
+        <li class="nav-item">
+          <a 
+            class="nav-link" 
+            [class.active]="activeTab === 'relays'"
+            (click)="setActiveTab('relays')"
+            role="tab"
+            style="cursor: pointer;">
+            Relays
+          </a>
+        </li>
+        <li class="nav-item">
+          <a 
+            class="nav-link" 
+            [class.active]="activeTab === 'configuration'"
+            (click)="setActiveTab('configuration')"
+            role="tab"
+            style="cursor: pointer;">
+            Application configuration
+          </a>
+        </li>
+        <li class="nav-item">
+          <a 
+            class="nav-link" 
+            [class.active]="activeTab === 'integrations'"
+            (click)="setActiveTab('integrations')"
+            role="tab"
+            style="cursor: pointer;">
+            Integrations
+          </a>
+        </li>
+      </ul>
+
+      <!-- Tab Content -->
+      <div class="tab-content">
+        <!-- Devices Tab -->
+        @if (activeTab === 'devices') {
+          <div class="tab-pane active">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div></div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-primary" (click)="openAddDeviceModal()">
+                  <i class="feather icon-plus"></i> Add device
+                </button>
+                <button class="btn btn-outline-secondary">
+                  Selected devices
+                </button>
+              </div>
+            </div>
+
+            @if (devicesLoading) {
+              <div class="text-center p-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            }
+
+            @if (devicesError) {
+              <div class="alert alert-danger" role="alert">
+                {{ devicesError }}
+              </div>
+            }
+
+            @if (!devicesLoading && !devicesError) {
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>
+                        <input type="checkbox" class="form-check-input">
+                      </th>
+                      <th>Last seen</th>
+                      <th>DevEUI</th>
+                      <th>Name</th>
+                      <th>Device profile</th>
+                      <th>Tags</th>
+                      <th>Battery</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @if (devices.length === 0) {
+                      <tr>
+                        <td colspan="7" class="text-center">No devices found</td>
+                      </tr>
+                    }
+                    @for (device of devices; track device.devEui) {
+                      <tr style="cursor: pointer;">
+                        <td>
+                          <input type="checkbox" class="form-check-input" (click)="$event.stopPropagation()">
+                        </td>
+                        <td>{{ device.lastSeenAt || 'Never' }}</td>
+                        <td>
+                          <a [routerLink]="['/devices', device.devEui]" class="text-primary">
+                            {{ device.devEui }}
+                          </a>
+                        </td>
+                        <td>{{ device.name }}</td>
+                        <td>{{ device.deviceProfileName || 'N/A' }}</td>
+                        <td>
+                          <span class="text-muted">-</span>
+                        </td>
+                        <td>
+                          @if (device.deviceStatus?.batteryLevel !== undefined && device.deviceStatus?.batteryLevel !== null) {
+                            {{ device.deviceStatus?.batteryLevel }}%
+                          } @else {
+                            <span class="text-muted">-</span>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted">
+                  Showing {{ devices.length }} device(s)
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <button class="btn btn-sm btn-outline-secondary" disabled>
+                    <i class="feather icon-chevron-left"></i>
+                  </button>
+                  <span class="badge bg-primary">1</span>
+                  <button class="btn btn-sm btn-outline-secondary" disabled>
+                    <i class="feather icon-chevron-right"></i>
+                  </button>
+                  <select class="form-select form-select-sm" style="width: auto;">
+                    <option>10 / page</option>
+                    <option>25 / page</option>
+                    <option>50 / page</option>
+                  </select>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- FUOTA Tab -->
+        @if (activeTab === 'fuota') {
+          <div class="tab-pane active">
+            <div class="alert alert-info">
+              FUOTA (Firmware Update Over The Air) functionality coming soon...
+            </div>
+          </div>
+        }
+
+        <!-- Multicast Groups Tab -->
+        @if (activeTab === 'multicast-groups') {
+          <div class="tab-pane active">
+            <div class="alert alert-info">
+              Multicast groups functionality coming soon...
+            </div>
+          </div>
+        }
+
+        <!-- Relays Tab -->
+        @if (activeTab === 'relays') {
+          <div class="tab-pane active">
+            <div class="alert alert-info">
+              Relays functionality coming soon...
+            </div>
+          </div>
+        }
+
+        <!-- Application Configuration Tab -->
+        @if (activeTab === 'configuration') {
+          <div class="tab-pane active">
+            <div class="alert alert-info">
+              Application configuration coming soon...
+            </div>
+          </div>
+        }
+
+        <!-- Integrations Tab -->
+        @if (activeTab === 'integrations') {
+          <div class="tab-pane active">
+            <div class="alert alert-info">
+              Integrations functionality coming soon...
+            </div>
+          </div>
+        }
+      </div>
+    </app-card>
+  </div>
+</div>
+
+<!-- Add Device Modal -->
+@if (showAddDeviceModal) {
+  <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add device</h5>
+          <button type="button" class="btn-close" (click)="closeAddDeviceModal()"></button>
+        </div>
+        <div class="modal-body">
+          @if (devicesError) {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              {{ devicesError }}
+              <button type="button" class="btn-close" (click)="devicesError = null"></button>
+            </div>
+          }
+
+          <!-- Tabs -->
+          <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="addDeviceTab === 'device'" (click)="setAddDeviceTab('device')" style="cursor: pointer;">
+                Device
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="addDeviceTab === 'tags'" (click)="setAddDeviceTab('tags')" style="cursor: pointer;">
+                Tags
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" [class.active]="addDeviceTab === 'variables'" (click)="setAddDeviceTab('variables')" style="cursor: pointer;">
+                Variables
+              </a>
+            </li>
+          </ul>
+
+          <!-- Device Tab -->
+          @if (addDeviceTab === 'device') {
+            <form>
+              <div class="mb-3">
+                <label for="deviceName" class="form-label">Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="deviceName" [(ngModel)]="newDevice.name" name="deviceName" placeholder="Device name" required>
+              </div>
+
+              <div class="mb-3">
+                <label for="deviceDescription" class="form-label">Description</label>
+                <textarea class="form-control" id="deviceDescription" [(ngModel)]="newDevice.description" name="deviceDescription" rows="3" placeholder="Optional description"></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label for="devEui" class="form-label">Device EUI (EUI64) <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="devEui" [(ngModel)]="newDevice.devEui" name="devEui" placeholder="e.g., 0000000000000001" required>
+                <small class="form-text text-muted">16 character hexadecimal device identifier</small>
+              </div>
+
+              <div class="mb-3">
+                <label for="joinEui" class="form-label">Join EUI (EUI64)</label>
+                <input type="text" class="form-control" id="joinEui" [(ngModel)]="newDevice.joinEui" name="joinEui" placeholder="e.g., 0000000000000000">
+                <small class="form-text text-muted">Optional join server identifier</small>
+              </div>
+
+              <div class="mb-3">
+                <label for="deviceProfile" class="form-label">Device profile <span class="text-danger">*</span></label>
+                @if (loadingProfiles) {
+                  <div class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                } @else {
+                  <select class="form-select" id="deviceProfile" [(ngModel)]="newDevice.deviceProfileId" name="deviceProfile" required>
+                    <option value="">Select device profile</option>
+                    @for (profile of deviceProfiles; track profile.id) {
+                      <option [value]="profile.id">{{ profile.name }}</option>
+                    }
+                  </select>
+                }
+              </div>
+
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="isDisabled" [(ngModel)]="newDevice.isDisabled" name="isDisabled">
+                <label class="form-check-label" for="isDisabled">
+                  Device is disabled
+                </label>
+                <small class="form-text text-muted d-block">Disabled devices cannot send or receive data</small>
+              </div>
+
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="skipFcntCheck" [(ngModel)]="newDevice.skipFcntCheck" name="skipFcntCheck">
+                <label class="form-check-label" for="skipFcntCheck">
+                  Disable frame-counter validation
+                </label>
+                <small class="form-text text-muted d-block">Note that disabling the frame-counter validation will compromise security</small>
+              </div>
+            </form>
+          }
+
+          <!-- Tags Tab -->
+          @if (addDeviceTab === 'tags') {
+            <div class="mb-3">
+              <p class="text-muted">Tags can be used to store additional key/value data.</p>
+
+              <div class="row g-2 mb-3">
+                <div class="col-md-5">
+                  <input type="text" class="form-control" [(ngModel)]="newTagKey" placeholder="Key" name="newTagKey">
+                </div>
+                <div class="col-md-5">
+                  <input type="text" class="form-control" [(ngModel)]="newTagValue" placeholder="Value" name="newTagValue">
+                </div>
+                <div class="col-md-2">
+                  <button type="button" class="btn btn-primary w-100" (click)="addTag()">
+                    <i class="feather icon-plus"></i>
+                  </button>
+                </div>
+              </div>
+
+              @if (newDevice.tags && Object.keys(newDevice.tags).length > 0) {
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Key</th>
+                      <th>Value</th>
+                      <th style="width: 50px;"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (key of Object.keys(newDevice.tags!); track key) {
+                      <tr>
+                        <td>{{ key }}</td>
+                        <td>{{ newDevice.tags![key] }}</td>
+                        <td>
+                          <button type="button" class="btn btn-sm btn-icon btn-link-danger" (click)="removeTag(key)">
+                            <i class="feather icon-trash-2"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              } @else {
+                <div class="alert alert-info">No tags added yet</div>
+              }
+            </div>
+          }
+
+          <!-- Variables Tab -->
+          @if (addDeviceTab === 'variables') {
+            <div class="mb-3">
+              <p class="text-muted">Variables can be used to substitute placeholders in for example integrations, e.g. in case an integration requires the configuration of a device specific token.</p>
+
+              <div class="row g-2 mb-3">
+                <div class="col-md-5">
+                  <input type="text" class="form-control" [(ngModel)]="newVariableKey" placeholder="Key" name="newVariableKey">
+                </div>
+                <div class="col-md-5">
+                  <input type="text" class="form-control" [(ngModel)]="newVariableValue" placeholder="Value" name="newVariableValue">
+                </div>
+                <div class="col-md-2">
+                  <button type="button" class="btn btn-primary w-100" (click)="addVariable()">
+                    <i class="feather icon-plus"></i>
+                  </button>
+                </div>
+              </div>
+
+              @if (newDevice.variables && Object.keys(newDevice.variables).length > 0) {
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Key</th>
+                      <th>Value</th>
+                      <th style="width: 50px;"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (key of Object.keys(newDevice.variables!); track key) {
+                      <tr>
+                        <td>{{ key }}</td>
+                        <td>{{ newDevice.variables![key] }}</td>
+                        <td>
+                          <button type="button" class="btn btn-sm btn-icon btn-link-danger" (click)="removeVariable(key)">
+                            <i class="feather icon-trash-2"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              } @else {
+                <div class="alert alert-info">No variables added yet</div>
+              }
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeAddDeviceModal()">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="saveDevice()" [disabled]="saving">
+            @if (saving) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            }
+            Submit
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

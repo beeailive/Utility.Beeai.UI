@@ -1,0 +1,422 @@
+<div class="row">
+  <div class="col-sm-12">
+    <!-- Header with back button -->
+    <div class="mb-3">
+      <button class="btn btn-secondary" (click)="goBack()">
+        <i class="feather icon-arrow-left"></i> Back to Gateways
+      </button>
+    </div>
+
+    @if (loading) {
+      <div class="text-center p-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    }
+
+    @if (error) {
+      <div class="alert alert-danger" role="alert">
+        {{ error }}
+      </div>
+    }
+
+    @if (!loading && !error && gateway) {
+      <app-card [cardTitle]="gateway.gateway.name" [options]="false">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-3" role="tablist">
+          <li class="nav-item">
+            <a 
+              class="nav-link" 
+              [class.active]="activeTab === 'dashboard'"
+              (click)="setActiveTab('dashboard')"
+              role="tab"
+              style="cursor: pointer;">
+              Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a 
+              class="nav-link" 
+              [class.active]="activeTab === 'configuration'"
+              (click)="setActiveTab('configuration')"
+              role="tab"
+              style="cursor: pointer;">
+              Configuration
+            </a>
+          </li>
+          <li class="nav-item">
+            <a 
+              class="nav-link" 
+              [class.active]="activeTab === 'tls-certificate'"
+              (click)="setActiveTab('tls-certificate')"
+              role="tab"
+              style="cursor: pointer;">
+              TLS certificate
+            </a>
+          </li>
+          <li class="nav-item">
+            <a 
+              class="nav-link" 
+              [class.active]="activeTab === 'lorawan-frames'"
+              (click)="setActiveTab('lorawan-frames')"
+              role="tab"
+              style="cursor: pointer;">
+              LoRaWAN frames
+            </a>
+          </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <!-- Dashboard Tab -->
+          @if (activeTab === 'dashboard') {
+            <div class="tab-pane active">
+              <!-- Gateway Info -->
+              <div class="row mb-4">
+                <div class="col-md-4">
+                  <div class="mb-2">
+                    <strong>Last seen:</strong> 
+                    {{ gateway.lastSeenAt ? (gateway.lastSeenAt | date: 'short') : 'Never' }}
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-2">
+                    <strong>Region ID:</strong> 
+                    {{ getRegionName() }}
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mb-2">
+                    <strong>Region common name:</strong> 
+                    {{ getRegionName() }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-4">
+                <div class="col-12">
+                  <div class="mb-2">
+                    <strong>Description:</strong> 
+                    {{ gateway.gateway.description || 'No description' }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Map -->
+              @if (gateway.gateway.location) {
+                <div class="row mb-4">
+                  <div class="col-12">
+                    <div class="card">
+                      <div class="card-body">
+                        <h5>Location</h5>
+                        <div style="height: 400px; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                          <div class="text-center">
+                            <i class="feather icon-map-pin" style="font-size: 48px; color: #666;"></i>
+                            <p class="mt-2">
+                              Lat: {{ gateway.gateway.location.latitude }}, 
+                              Lng: {{ gateway.gateway.location.longitude }}
+                            </p>
+                            <p class="text-muted">Map integration coming soon</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <!-- Charts Row 1 -->
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5>Received</h5>
+                      @if (receivedData.length > 0) {
+                        <apx-chart
+                          [series]="receivedChartOptions.series!"
+                          [chart]="receivedChartOptions.chart!"
+                          [dataLabels]="receivedChartOptions.dataLabels!"
+                          [stroke]="receivedChartOptions.stroke!"
+                          [xaxis]="receivedChartOptions.xaxis!"
+                          [yaxis]="receivedChartOptions.yaxis!"
+                          [colors]="receivedChartOptions.colors!"
+                          [fill]="receivedChartOptions.fill!"
+                          [tooltip]="receivedChartOptions.tooltip!"
+                        ></apx-chart>
+                      } @else {
+                        <div style="height: 250px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
+                          <div class="text-center">
+                            <i class="feather icon-bar-chart-2" style="font-size: 48px; color: #666;"></i>
+                            <p class="mt-2 text-muted">No data available</p>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5>Transmitted</h5>
+                      @if (transmittedData.length > 0) {
+                        <apx-chart
+                          [series]="transmittedChartOptions.series!"
+                          [chart]="transmittedChartOptions.chart!"
+                          [dataLabels]="transmittedChartOptions.dataLabels!"
+                          [stroke]="transmittedChartOptions.stroke!"
+                          [xaxis]="transmittedChartOptions.xaxis!"
+                          [yaxis]="transmittedChartOptions.yaxis!"
+                          [colors]="transmittedChartOptions.colors!"
+                          [fill]="transmittedChartOptions.fill!"
+                          [tooltip]="transmittedChartOptions.tooltip!"
+                        ></apx-chart>
+                      } @else {
+                        <div style="height: 250px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
+                          <div class="text-center">
+                            <i class="feather icon-bar-chart-2" style="font-size: 48px; color: #666;"></i>
+                            <p class="mt-2 text-muted">No data available</p>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Charts Row 2 -->
+              <div class="row mb-4">
+                <div class="col-md-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5>Received / frequency</h5>
+                      @if (receivedFrequencyData.length > 0) {
+                        <apx-chart
+                          [series]="receivedFreqChartOptions.series!"
+                          [chart]="receivedFreqChartOptions.chart!"
+                          [dataLabels]="receivedFreqChartOptions.dataLabels!"
+                          [xaxis]="receivedFreqChartOptions.xaxis!"
+                          [yaxis]="receivedFreqChartOptions.yaxis!"
+                          [colors]="receivedFreqChartOptions.colors!"
+                          [legend]="receivedFreqChartOptions.legend!"
+                        ></apx-chart>
+                      } @else {
+                        <div style="height: 250px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
+                          <div class="text-center">
+                            <i class="feather icon-bar-chart" style="font-size: 48px; color: #666;"></i>
+                            <p class="mt-2 text-muted">No data available</p>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5>Transmitted / frequency</h5>
+                      @if (transmittedFrequencyData.length > 0) {
+                        <apx-chart
+                          [series]="transmittedFreqChartOptions.series!"
+                          [chart]="transmittedFreqChartOptions.chart!"
+                          [dataLabels]="transmittedFreqChartOptions.dataLabels!"
+                          [xaxis]="transmittedFreqChartOptions.xaxis!"
+                          [yaxis]="transmittedFreqChartOptions.yaxis!"
+                          [colors]="transmittedFreqChartOptions.colors!"
+                          [legend]="transmittedFreqChartOptions.legend!"
+                        ></apx-chart>
+                      } @else {
+                        <div style="height: 250px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
+                          <div class="text-center">
+                            <i class="feather icon-bar-chart" style="font-size: 48px; color: #666;"></i>
+                            <p class="mt-2 text-muted">No data available</p>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5>Received / DR</h5>
+                      @if (receivedDrData.length > 0) {
+                        <apx-chart
+                          [series]="receivedDrChartOptions.series!"
+                          [chart]="receivedDrChartOptions.chart!"
+                          [dataLabels]="receivedDrChartOptions.dataLabels!"
+                          [xaxis]="receivedDrChartOptions.xaxis!"
+                          [yaxis]="receivedDrChartOptions.yaxis!"
+                          [colors]="receivedDrChartOptions.colors!"
+                          [legend]="receivedDrChartOptions.legend!"
+                        ></apx-chart>
+                      } @else {
+                        <div style="height: 250px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
+                          <div class="text-center">
+                            <i class="feather icon-bar-chart" style="font-size: 48px; color: #666;"></i>
+                            <p class="mt-2 text-muted">No data available</p>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Charts Row 3 -->
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5>Transmitted / DR</h5>
+                      @if (transmittedDrData.length > 0) {
+                        <apx-chart
+                          [series]="transmittedDrChartOptions.series!"
+                          [chart]="transmittedDrChartOptions.chart!"
+                          [dataLabels]="transmittedDrChartOptions.dataLabels!"
+                          [xaxis]="transmittedDrChartOptions.xaxis!"
+                          [yaxis]="transmittedDrChartOptions.yaxis!"
+                          [colors]="transmittedDrChartOptions.colors!"
+                          [legend]="transmittedDrChartOptions.legend!"
+                        ></apx-chart>
+                      } @else {
+                        <div style="height: 250px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
+                          <div class="text-center">
+                            <i class="feather icon-bar-chart" style="font-size: 48px; color: #666;"></i>
+                            <p class="mt-2 text-muted">No data available</p>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5>TX packets / status</h5>
+                      @if (txPacketsStatusData.length > 0) {
+                        <apx-chart
+                          [series]="txStatusChartOptions.series!"
+                          [chart]="txStatusChartOptions.chart!"
+                          [dataLabels]="txStatusChartOptions.dataLabels!"
+                          [xaxis]="txStatusChartOptions.xaxis!"
+                          [yaxis]="txStatusChartOptions.yaxis!"
+                          [colors]="txStatusChartOptions.colors!"
+                          [legend]="txStatusChartOptions.legend!"
+                        ></apx-chart>
+                      } @else {
+                        <div style="height: 250px; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
+                          <div class="text-center">
+                            <i class="feather icon-bar-chart" style="font-size: 48px; color: #666;"></i>
+                            <p class="mt-2 text-muted">No data available</p>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Configuration Tab -->
+          @if (activeTab === 'configuration') {
+            <div class="tab-pane active">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label"><strong>Gateway ID:</strong></label>
+                    <p><code>{{ gateway.gateway.gatewayId }}</code></p>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label"><strong>Name:</strong></label>
+                    <p>{{ gateway.gateway.name }}</p>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label"><strong>Description:</strong></label>
+                    <p>{{ gateway.gateway.description || 'No description' }}</p>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label"><strong>Tenant ID:</strong></label>
+                    <p>{{ gateway.gateway.tenantId }}</p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  @if (gateway.gateway.location) {
+                    <div class="mb-3">
+                      <label class="form-label"><strong>Location:</strong></label>
+                      <p>
+                        Latitude: {{ gateway.gateway.location.latitude }}<br>
+                        Longitude: {{ gateway.gateway.location.longitude }}<br>
+                        Altitude: {{ gateway.gateway.location.altitude }}m<br>
+                        Source: {{ gateway.gateway.location.source }}<br>
+                        Accuracy: {{ gateway.gateway.location.accuracy }}m
+                      </p>
+                    </div>
+                  }
+                  <div class="mb-3">
+                    <label class="form-label"><strong>Stats Interval:</strong></label>
+                    <p>{{ gateway.gateway.statsInterval || 'Default' }}</p>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label"><strong>Created At:</strong></label>
+                    <p>{{ gateway.createdAt | date: 'medium' }}</p>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label"><strong>Updated At:</strong></label>
+                    <p>{{ gateway.updatedAt | date: 'medium' }}</p>
+                  </div>
+                </div>
+              </div>
+
+              @if (gateway.gateway.tags && Object.keys(gateway.gateway.tags).length > 0) {
+                <div class="row mt-4">
+                  <div class="col-12">
+                    <h5>Tags</h5>
+                    <table class="table table-bordered">
+                      <thead>
+                        <tr>
+                          <th>Key</th>
+                          <th>Value</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (tag of Object.entries(gateway.gateway.tags); track tag[0]) {
+                          <tr>
+                            <td>{{ tag[0] }}</td>
+                            <td>{{ tag[1] }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- TLS Certificate Tab -->
+          @if (activeTab === 'tls-certificate') {
+            <div class="tab-pane active">
+              <div class="alert alert-info">
+                <i class="feather icon-info"></i>
+                TLS certificate management coming soon
+              </div>
+            </div>
+          }
+
+          <!-- LoRaWAN Frames Tab -->
+          @if (activeTab === 'lorawan-frames') {
+            <div class="tab-pane active">
+              <div class="alert alert-info">
+                <i class="feather icon-info"></i>
+                LoRaWAN frames viewer coming soon
+              </div>
+            </div>
+          }
+        </div>
+      </app-card>
+    }
+  </div>
+</div>
+

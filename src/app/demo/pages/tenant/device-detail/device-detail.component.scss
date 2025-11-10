@@ -1,0 +1,14 @@
+.nav-tabs .nav-link {
+  border-bottom: 2px solid transparent;
+  
+  &.active {
+    border-bottom-color: #4680ff;
+    color: #4680ff;
+  }
+}
+
+.card {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid #e9ecef;
+}
+

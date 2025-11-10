@@ -1,0 +1,502 @@
+<div class="row">
+  <div class="col-sm-12">
+    <app-card cardTitle="Device Profile Templates" [options]="false">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <p class="mb-0">Manage device profile templates that can be used across tenants</p>
+        <button class="btn btn-primary" (click)="openAddModal()">
+          <i class="feather icon-plus"></i> Add Template
+        </button>
+      </div>
+
+      @if (error) {
+        <div class="alert alert-danger" role="alert">
+          <i class="feather icon-alert-circle"></i>
+          {{ error }}
+        </div>
+      }
+
+      @if (loading) {
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+          <p class="mt-2">Loading templates...</p>
+        </div>
+      }
+
+      @if (!loading && templates.length === 0) {
+        <div class="text-center py-5">
+          <i class="feather icon-smartphone" style="font-size: 48px; color: #ccc;"></i>
+          <p class="mt-3 text-muted">No device profile templates found</p>
+          <button class="btn btn-primary mt-2" (click)="openAddModal()">
+            <i class="feather icon-plus"></i> Create First Template
+          </button>
+        </div>
+      }
+
+      @if (!loading && templates.length > 0) {
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Region</th>
+                <th>MAC Version</th>
+                <th>Revision</th>
+                <th>OTAA</th>
+                <th>Class B</th>
+                <th>Class C</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (template of templates; track template.id) {
+                <tr>
+                  <td>{{ template.name }}</td>
+                  <td>{{ template.region }}</td>
+                  <td>{{ template.macVersion }}</td>
+                  <td>{{ template.regParamsRevision }}</td>
+                  <td>
+                    @if (template.supportsOtaa) {
+                      <span class="badge bg-success">Yes</span>
+                    } @else {
+                      <span class="badge bg-secondary">No</span>
+                    }
+                  </td>
+                  <td>
+                    @if (template.supportsClassB) {
+                      <span class="badge bg-success">Yes</span>
+                    } @else {
+                      <span class="badge bg-secondary">No</span>
+                    }
+                  </td>
+                  <td>
+                    @if (template.supportsClassC) {
+                      <span class="badge bg-success">Yes</span>
+                    } @else {
+                      <span class="badge bg-secondary">No</span>
+                    }
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-danger" (click)="deleteTemplate(template.id)" title="Delete">
+                      <i class="feather icon-trash-2"></i>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-3">
+          <p class="text-muted">Total: {{ totalCount }} template(s)</p>
+        </div>
+      }
+    </app-card>
+  </div>
+</div>
+
+<!-- Add Template Modal -->
+@if (showAddModal) {
+  <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Device Profile Template</h5>
+          <button type="button" class="btn-close" (click)="closeAddModal()" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          @if (error) {
+            <div class="alert alert-danger" role="alert">
+              <i class="feather icon-alert-circle"></i>
+              {{ error }}
+            </div>
+          }
+
+          <!-- Tabs Navigation -->
+          <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" [class.active]="activeTab === 'general'" (click)="setActiveTab('general')" type="button">
+                General
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" [class.active]="activeTab === 'join'" (click)="setActiveTab('join')" type="button">
+                Join (OTAA / ABP)
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" [class.active]="activeTab === 'class-b'" (click)="setActiveTab('class-b')" type="button">
+                Class-B
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" [class.active]="activeTab === 'class-c'" (click)="setActiveTab('class-c')" type="button">
+                Class-C
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" [class.active]="activeTab === 'codec'" (click)="setActiveTab('codec')" type="button">
+                Codec
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" [class.active]="activeTab === 'tags'" (click)="setActiveTab('tags')" type="button">
+                Tags
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" [class.active]="activeTab === 'measurements'" (click)="setActiveTab('measurements')" type="button">
+                Measurements
+              </button>
+            </li>
+          </ul>
+
+          <form>
+            <!-- General Tab -->
+            @if (activeTab === 'general') {
+              <div class="tab-content">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" [(ngModel)]="newTemplate.name" name="name" placeholder="e.g., LoRa Sensor Template" required>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Description</label>
+                    <input type="text" class="form-control" [(ngModel)]="newTemplate.description" name="description" placeholder="Template description">
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Vendor</label>
+                    <input type="text" class="form-control" [(ngModel)]="newTemplate.vendor" name="vendor" placeholder="e.g., Acme Corp">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Firmware</label>
+                    <input type="text" class="form-control" [(ngModel)]="newTemplate.firmware" name="firmware" placeholder="e.g., v1.0.0">
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Region <span class="text-danger">*</span></label>
+                    <select class="form-select" [(ngModel)]="newTemplate.region" name="region" required>
+                      <option value="">Select Region</option>
+                      @for (region of regions; track region.id) {
+                        <option [value]="region.id">{{ region.name }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">MAC Version</label>
+                    <select class="form-select" [(ngModel)]="newTemplate.macVersion" name="macVersion">
+                      @for (version of macVersions; track version.value) {
+                        <option [value]="version.value">{{ version.label }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Regional Parameters Revision</label>
+                    <select class="form-select" [(ngModel)]="newTemplate.regParamsRevision" name="regParamsRevision">
+                      @for (revision of regParamsRevisions; track revision.value) {
+                        <option [value]="revision.value">{{ revision.label }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">ADR Algorithm</label>
+                    <select class="form-select" [(ngModel)]="newTemplate.adrAlgorithmId" name="adrAlgorithmId">
+                      @for (algo of adrAlgorithms; track algo.id) {
+                        <option [value]="algo.id">{{ algo.name }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Uplink Interval (seconds)</label>
+                    <input type="number" class="form-control" [(ngModel)]="newTemplate.uplinkInterval" name="uplinkInterval" min="0">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Device Status Request Interval</label>
+                    <input type="number" class="form-control" [(ngModel)]="newTemplate.deviceStatusReqInterval" name="deviceStatusReqInterval" min="0">
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" [(ngModel)]="newTemplate.flushQueueOnActivate" name="flushQueueOnActivate" id="flushQueueOnActivate">
+                      <label class="form-check-label" for="flushQueueOnActivate">
+                        Flush Queue on Activate
+                      </label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" [(ngModel)]="newTemplate.autoDetectMeasurements" name="autoDetectMeasurements" id="autoDetectMeasurements">
+                      <label class="form-check-label" for="autoDetectMeasurements">
+                        Auto-detect Measurements
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Join (OTAA / ABP) Tab -->
+            @if (activeTab === 'join') {
+              <div class="tab-content">
+                <div class="row mb-3">
+                  <div class="col-md-12">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" [(ngModel)]="newTemplate.supportsOtaa" name="supportsOtaa" id="supportsOtaa">
+                      <label class="form-check-label" for="supportsOtaa">
+                        <strong>Device supports OTAA</strong>
+                      </label>
+                      <small class="form-text text-muted d-block">Over-The-Air Activation</small>
+                    </div>
+                  </div>
+                </div>
+
+                <h6 class="mt-4 mb-3">ABP Configuration</h6>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">RX1 Delay</label>
+                    <input type="number" class="form-control" [(ngModel)]="newTemplate.abpRx1Delay" name="abpRx1Delay" min="0">
+                    <small class="form-text text-muted">Delay between TX and RX1 (seconds)</small>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">RX1 Data-Rate Offset</label>
+                    <input type="number" class="form-control" [(ngModel)]="newTemplate.abpRx1DrOffset" name="abpRx1DrOffset" min="0">
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">RX2 Data-Rate</label>
+                    <input type="number" class="form-control" [(ngModel)]="newTemplate.abpRx2Dr" name="abpRx2Dr" min="0">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">RX2 Frequency (Hz)</label>
+                    <input type="number" class="form-control" [(ngModel)]="newTemplate.abpRx2Freq" name="abpRx2Freq" min="0">
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Class-B Tab -->
+            @if (activeTab === 'class-b') {
+              <div class="tab-content">
+                <div class="row mb-3">
+                  <div class="col-md-12">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" [(ngModel)]="newTemplate.supportsClassB" name="supportsClassB" id="supportsClassBTab">
+                      <label class="form-check-label" for="supportsClassBTab">
+                        <strong>Device supports Class-B</strong>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Class-B Timeout (seconds)</label>
+                    <input type="number" class="form-control" [(ngModel)]="newTemplate.classBTimeout" name="classBTimeout" min="0">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Class-B Ping-Slot Period</label>
+                    <input type="number" class="form-control" [(ngModel)]="newTemplate.classBPingSlotPeriod" name="classBPingSlotPeriod" min="0">
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Class-B Ping-Slot Data-Rate</label>
+                    <input type="number" class="form-control" [(ngModel)]="newTemplate.classBPingSlotDr" name="classBPingSlotDr" min="0">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Class-B Ping-Slot Frequency (Hz)</label>
+                    <input type="number" class="form-control" [(ngModel)]="newTemplate.classBPingSlotFreq" name="classBPingSlotFreq" min="0">
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Class-C Tab -->
+            @if (activeTab === 'class-c') {
+              <div class="tab-content">
+                <div class="row mb-3">
+                  <div class="col-md-12">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" [(ngModel)]="newTemplate.supportsClassC" name="supportsClassC" id="supportsClassCTab">
+                      <label class="form-check-label" for="supportsClassCTab">
+                        <strong>Device supports Class-C</strong>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Class-C Timeout (seconds)</label>
+                    <input type="number" class="form-control" [(ngModel)]="newTemplate.classCTimeout" name="classCTimeout" min="0">
+                    <small class="form-text text-muted">Timeout for confirmed downlink transmissions</small>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Codec Tab -->
+            @if (activeTab === 'codec') {
+              <div class="tab-content">
+                <div class="row mb-3">
+                  <div class="col-md-12">
+                    <label class="form-label">Payload Codec Runtime</label>
+                    <select class="form-select" [(ngModel)]="newTemplate.payloadCodecRuntime" name="payloadCodecRuntime">
+                      <option value="">None</option>
+                      <option value="CAYENNE_LPP">Cayenne LPP</option>
+                      <option value="JS">JavaScript</option>
+                    </select>
+                    <small class="form-text text-muted">Select the codec runtime for encoding/decoding payloads</small>
+                  </div>
+                </div>
+
+                @if (newTemplate.payloadCodecRuntime === 'JS') {
+                  <div class="row">
+                    <div class="col-md-12 mb-3">
+                      <label class="form-label">Payload Codec Script</label>
+                      <textarea class="form-control" [(ngModel)]="newTemplate.payloadCodecScript" name="payloadCodecScript" rows="10" placeholder="// Encode function&#10;function encodeDownlink(input) {&#10;  return {&#10;    bytes: []&#10;  };&#10;}&#10;&#10;// Decode function&#10;function decodeUplink(input) {&#10;  return {&#10;    data: {}&#10;  };&#10;}"></textarea>
+                      <small class="form-text text-muted">JavaScript functions for encoding downlinks and decoding uplinks</small>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Tags Tab -->
+            @if (activeTab === 'tags') {
+              <div class="tab-content">
+                <p class="text-muted">Tags can be used to store additional key-value metadata.</p>
+
+                <button type="button" class="btn btn-sm btn-primary mb-3" (click)="addTag()">
+                  <i class="feather icon-plus"></i> Add Tag
+                </button>
+
+                @if (tagEntries.length > 0) {
+                  <table class="table table-sm">
+                    <thead>
+                      <tr>
+                        <th>Key</th>
+                        <th>Value</th>
+                        <th style="width: 50px;">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (tag of tagEntries; track tag.key; let i = $index) {
+                        <tr>
+                          <td>
+                            <input type="text" class="form-control form-control-sm" [(ngModel)]="tag.key" [name]="'tagKey_' + i" placeholder="Key">
+                          </td>
+                          <td>
+                            <input type="text" class="form-control form-control-sm" [(ngModel)]="tag.value" [name]="'tagValue_' + i" placeholder="Value">
+                          </td>
+                          <td>
+                            <button type="button" class="btn btn-sm btn-icon btn-link-danger" (click)="removeTag(i)" title="Remove">
+                              <i class="feather icon-trash-2"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                } @else {
+                  <div class="alert alert-info">
+                    <i class="feather icon-info"></i> No tags added yet. Click "Add Tag" to add key-value pairs.
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Measurements Tab -->
+            @if (activeTab === 'measurements') {
+              <div class="tab-content">
+                <p class="text-muted">Configure measurement definitions for this device profile template.</p>
+
+                <div class="mb-3">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" [(ngModel)]="newTemplate.autoDetectMeasurements" name="autoDetectMeasurements" id="autoDetectMeasurements">
+                    <label class="form-check-label" for="autoDetectMeasurements">
+                      Auto-detect measurements
+                    </label>
+                    <small class="form-text text-muted d-block">Automatically detect measurements from decoded payload</small>
+                  </div>
+                </div>
+
+                <button type="button" class="btn btn-sm btn-primary mb-3" (click)="addMeasurement()">
+                  <i class="feather icon-plus"></i> Add Measurement
+                </button>
+
+                @if (measurementEntries.length > 0) {
+                  <table class="table table-sm">
+                    <thead>
+                      <tr>
+                        <th>Key</th>
+                        <th>Name</th>
+                        <th>Kind</th>
+                        <th style="width: 50px;">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (measurement of measurementEntries; track measurement.key; let i = $index) {
+                        <tr>
+                          <td>
+                            <input type="text" class="form-control form-control-sm" [(ngModel)]="measurement.key" [name]="'measurementKey_' + i" placeholder="Key">
+                          </td>
+                          <td>
+                            <input type="text" class="form-control form-control-sm" [(ngModel)]="measurement.value.name" [name]="'measurementName_' + i" placeholder="Name">
+                          </td>
+                          <td>
+                            <select class="form-select form-select-sm" [(ngModel)]="measurement.value.kind" [name]="'measurementKind_' + i">
+                              <option value="COUNTER">Counter</option>
+                              <option value="ABSOLUTE">Absolute</option>
+                              <option value="GAUGE">Gauge</option>
+                              <option value="STRING">String</option>
+                            </select>
+                          </td>
+                          <td>
+                            <button type="button" class="btn btn-sm btn-icon btn-link-danger" (click)="removeMeasurement(i)" title="Remove">
+                              <i class="feather icon-trash-2"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                } @else {
+                  <div class="alert alert-info">
+                    <i class="feather icon-info"></i> No measurements added yet. Click "Add Measurement" to define measurements.
+                  </div>
+                }
+              </div>
+            }
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeAddModal()" [disabled]="saving">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="saveTemplate()" [disabled]="saving">
+            @if (saving) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+            }
+            {{ saving ? 'Creating...' : 'Create Template' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+

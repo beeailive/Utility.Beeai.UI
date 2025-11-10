@@ -1,0 +1,81 @@
+@if (totalCount > 0) {
+  <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-3">
+    <!-- Items per page selector -->
+    @if (showPageSizeSelector) {
+      <div class="d-flex align-items-center gap-2">
+        <label class="mb-0 text-muted">Show:</label>
+        <select 
+          class="form-select form-select-sm" 
+          style="width: auto;" 
+          [ngModel]="pageSize" 
+          (ngModelChange)="onPageSizeChange($event)"
+        >
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size">{{ size }}</option>
+          }
+        </select>
+        <span class="text-muted">entries</span>
+      </div>
+    }
+
+    <!-- Page info -->
+    @if (showPageInfo) {
+      <div class="text-muted">
+        Showing {{ startIndex }} to {{ endIndex }} of {{ totalCount }} entries
+      </div>
+    }
+
+    <!-- Pagination controls -->
+    @if (totalPages > 1) {
+      <nav>
+        <ul class="pagination mb-0">
+          <!-- Previous button -->
+          <li class="page-item" [class.disabled]="currentPage === 1">
+            <a class="page-link" (click)="previousPage()" style="cursor: pointer;">
+              <i class="feather icon-chevron-left"></i>
+            </a>
+          </li>
+
+          <!-- First page -->
+          @if (pageNumbers[0] > 1) {
+            <li class="page-item">
+              <a class="page-link" (click)="goToPage(1)" style="cursor: pointer;">1</a>
+            </li>
+            @if (pageNumbers[0] > 2) {
+              <li class="page-item disabled">
+                <span class="page-link">...</span>
+              </li>
+            }
+          }
+
+          <!-- Page numbers -->
+          @for (page of pageNumbers; track page) {
+            <li class="page-item" [class.active]="currentPage === page">
+              <a class="page-link" (click)="goToPage(page)" style="cursor: pointer;">{{ page }}</a>
+            </li>
+          }
+
+          <!-- Last page -->
+          @if (pageNumbers[pageNumbers.length - 1] < totalPages) {
+            @if (pageNumbers[pageNumbers.length - 1] < totalPages - 1) {
+              <li class="page-item disabled">
+                <span class="page-link">...</span>
+              </li>
+            }
+            <li class="page-item">
+              <a class="page-link" (click)="goToPage(totalPages)" style="cursor: pointer;">{{ totalPages }}</a>
+            </li>
+          }
+
+          <!-- Next button -->
+          <li class="page-item" [class.disabled]="currentPage === totalPages">
+            <a class="page-link" (click)="nextPage()" style="cursor: pointer;">
+              <i class="feather icon-chevron-right"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    }
+  </div>
+}
+

@@ -1,0 +1,92 @@
+<div class="row">
+  <div class="col-sm-12">
+    <app-card cardTitle="Devices" [options]="false">
+      <!-- Tenant Selection Message -->
+      @if (!selectedTenantId) {
+        <div class="alert alert-info" role="alert">
+          <i class="feather icon-info"></i> Please select a tenant from the sidebar to view devices.
+        </div>
+      }
+
+      <!-- Loading State -->
+      @if (loading) {
+        <div class="text-center p-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      }
+
+      <!-- Error State -->
+      @if (error) {
+        <div class="alert alert-danger" role="alert">
+          {{ error }}
+        </div>
+      }
+
+      <!-- Devices Table -->
+      @if (!loading && selectedTenantId && !error) {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">
+            Devices for {{ selectedTenantName }}
+            <span class="badge bg-primary ms-2">{{ totalCount }}</span>
+          </h5>
+          <button class="btn btn-primary">
+            <i class="feather icon-plus"></i> Add Device
+          </button>
+        </div>
+
+        <!-- Empty State -->
+        @if (devices.length === 0) {
+          <div class="text-center py-5">
+            <i class="feather icon-inbox" style="font-size: 48px; color: #ccc;"></i>
+            <p class="text-muted mt-3">No devices found for this tenant.</p>
+          </div>
+        }
+
+        <!-- Devices List -->
+        @if (devices.length > 0) {
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Last seen</th>
+                  <th>DevEUI</th>
+                  <th>Name</th>
+                  <th>Device profile</th>
+                  <th>Battery</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (device of devices; track device.devEui) {
+                  <tr style="cursor: pointer;" (click)="viewDevice(device.devEui)">
+                    <td>{{ device.lastSeenAt ? (device.lastSeenAt | date: 'short') : 'Never' }}</td>
+                    <td>
+                      <span class="text-primary">{{ device.devEui }}</span>
+                    </td>
+                    <td>{{ device.name }}</td>
+                    <td>{{ device.deviceProfileName || 'N/A' }}</td>
+                    <td>
+                      @if (device.deviceStatus?.batteryLevel !== undefined && device.deviceStatus?.batteryLevel !== null) {
+                        {{ device.deviceStatus?.batteryLevel }}%
+                      } @else {
+                        <span class="text-muted">-</span>
+                      }
+                    </td>
+                    <td>
+                      <button class="btn btn-sm btn-danger" (click)="$event.stopPropagation(); deleteDevice(device.devEui)">
+                        <i class="feather icon-trash-2"></i>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    </app-card>
+  </div>
+</div>
+

@@ -1,0 +1,26 @@
+<div class="toast-container">
+  @for (toast of toasts; track toast.id) {
+    <div 
+      class="toast" 
+      [ngClass]="getToastClass(toast.type)"
+      @toastAnimation
+    >
+      <div class="toast-header">
+        <i class="feather {{ getIcon(toast.type) }} toast-icon"></i>
+        <strong class="toast-title">{{ toast.title }}</strong>
+        <button 
+          type="button" 
+          class="toast-close" 
+          (click)="removeToast(toast.id)"
+          aria-label="Close"
+        >
+          <i class="feather icon-x"></i>
+        </button>
+      </div>
+      <div class="toast-body">
+        {{ toast.message }}
+      </div>
+    </div>
+  }
+</div>
+

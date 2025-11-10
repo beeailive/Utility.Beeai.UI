@@ -1,0 +1,135 @@
+<!-- No Tenant Selected Message -->
+@if (!selectedTenantId) {
+  <div class="row">
+    <div class="col-sm-12">
+      <app-card cardTitle="Tenant Dashboard" [options]="false">
+        <div class="alert alert-warning">
+          <i class="feather icon-alert-circle"></i>
+          Please select a tenant from the dropdown to view the dashboard.
+        </div>
+      </app-card>
+    </div>
+  </div>
+}
+
+<!-- Tenant Dashboard Content -->
+@if (selectedTenantId) {
+  <!-- Stats Cards Row -->
+  <div class="row">
+    <!-- Total Gateways Card -->
+    <div class="col-md-6 col-xl-3">
+      <app-card cardClass="bg-c-blue text-white" [hidHeader]="true">
+        <h6 class="text-white">Total Gateways</h6>
+        <h2 class="text-white">{{ totalGateways }}</h2>
+        <p class="m-b-0">
+          <i class="feather icon-radio"></i>
+          <span class="f-right">{{ selectedTenantName }}</span>
+        </p>
+      </app-card>
+    </div>
+
+    <!-- Total Applications Card -->
+    <div class="col-md-6 col-xl-3">
+      <app-card cardClass="bg-c-green text-white" [hidHeader]="true">
+        <h6 class="text-white">Total Applications</h6>
+        <h2 class="text-white">{{ totalApplications }}</h2>
+        <p class="m-b-0">
+          <i class="feather icon-package"></i>
+          <span class="f-right">{{ selectedTenantName }}</span>
+        </p>
+      </app-card>
+    </div>
+
+    <!-- Total Devices Card -->
+    <div class="col-md-6 col-xl-3">
+      <app-card cardClass="bg-c-yellow text-white" [hidHeader]="true">
+        <h6 class="text-white">Total Devices</h6>
+        <h2 class="text-white">{{ totalDevices }}</h2>
+        <p class="m-b-0">
+          <i class="feather icon-cpu"></i>
+          <span class="f-right">{{ selectedTenantName }}</span>
+        </p>
+      </app-card>
+    </div>
+
+    <!-- Active Devices Card -->
+    <div class="col-md-6 col-xl-3">
+      <app-card cardClass="bg-c-pink text-white" [hidHeader]="true">
+        <h6 class="text-white">Active Devices</h6>
+        <h2 class="text-white">{{ activeDevices }}</h2>
+        <p class="m-b-0">
+          <i class="feather icon-activity"></i>
+          <span class="f-right">Last 1 hour</span>
+        </p>
+      </app-card>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row">
+    <!-- Active Devices Chart -->
+    <div class="col-md-6">
+      <app-card cardTitle="Active Devices" [options]="false">
+        @if (loading) {
+          <div class="text-center p-4">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        }
+        @if (!loading) {
+          <apx-chart
+            [series]="activeDevicesChartOptions.series!"
+            [chart]="activeDevicesChartOptions.chart!"
+            [labels]="activeDevicesChartOptions.labels!"
+            [colors]="activeDevicesChartOptions.colors!"
+            [legend]="activeDevicesChartOptions.legend!"
+            [dataLabels]="activeDevicesChartOptions.dataLabels!"
+            [plotOptions]="activeDevicesChartOptions.plotOptions!"
+          ></apx-chart>
+          <div class="text-center mt-3">
+            <p class="text-muted mb-1">
+              <span class="badge bg-success">{{ activeDevices }}</span> Active (last 1 hour)
+            </p>
+            <p class="text-muted">
+              <span class="badge bg-danger">{{ inactiveDevices }}</span> Inactive
+            </p>
+          </div>
+        }
+      </app-card>
+    </div>
+
+    <!-- Active Gateways Chart -->
+    <div class="col-md-6">
+      <app-card cardTitle="Active Gateways" [options]="false">
+        @if (loading) {
+          <div class="text-center p-4">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        }
+        @if (!loading) {
+          <apx-chart
+            [series]="activeGatewaysChartOptions.series!"
+            [chart]="activeGatewaysChartOptions.chart!"
+            [labels]="activeGatewaysChartOptions.labels!"
+            [colors]="activeGatewaysChartOptions.colors!"
+            [legend]="activeGatewaysChartOptions.legend!"
+            [dataLabels]="activeGatewaysChartOptions.dataLabels!"
+            [plotOptions]="activeGatewaysChartOptions.plotOptions!"
+          ></apx-chart>
+          <div class="text-center mt-3">
+            <p class="text-muted mb-1">
+              <span class="badge bg-primary">{{ activeGateways }}</span> Active (last 5 min)
+            </p>
+            <p class="text-muted">
+              <span class="badge bg-danger">{{ inactiveGateways }}</span> Inactive
+            </p>
+          </div>
+        }
+      </app-card>
+    </div>
+  </div>
+}
+

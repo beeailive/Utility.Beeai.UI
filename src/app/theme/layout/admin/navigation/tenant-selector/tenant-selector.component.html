@@ -1,0 +1,61 @@
+<div class="tenant-selector-wrapper">
+  <div class="tenant-selector" (click)="toggleDropdown()" #selectorButton>
+    <div class="tenant-selector-display" [title]="selectedTenantName">
+      <i class="feather icon-home"></i>
+      <span class="tenant-name">{{ selectedTenantName }}</span>
+      <i class="feather icon-chevron-down"></i>
+    </div>
+  </div>
+
+  @if (isOpen) {
+    <div class="tenant-dropdown">
+      <div class="tenant-search">
+        <input
+          type="text"
+          class="form-control form-control-sm"
+          placeholder="Search tenants..."
+          [(ngModel)]="searchQuery"
+          (click)="$event.stopPropagation()"
+        />
+        <i class="feather icon-search search-icon"></i>
+      </div>
+
+      <div class="tenant-list">
+        @if (loading) {
+          <div class="text-center p-3">
+            <div class="spinner-border spinner-border-sm" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        }
+
+        @if (!loading && filteredTenants.length === 0 && searchQuery) {
+          <div class="tenant-item text-muted text-center">
+            No tenants found
+          </div>
+        }
+
+        @if (!loading && filteredTenants.length === 0 && !searchQuery) {
+          <div class="tenant-item text-muted text-center">
+            No tenants available
+          </div>
+        }
+
+        @for (tenant of filteredTenants; track tenant.id) {
+          <div
+            class="tenant-item"
+            [class.active]="tenant.id === selectedTenantId"
+            (click)="selectTenant(tenant); $event.stopPropagation()"
+          >
+            {{ tenant.name }}
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+@if (isOpen) {
+  <div class="tenant-dropdown-overlay" (click)="toggleDropdown()"></div>
+}
+

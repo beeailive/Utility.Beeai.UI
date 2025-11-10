@@ -1,0 +1,168 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5>Relay Gateways</h5>
+          <button class="btn btn-primary" (click)="openAddModal()">
+            <i class="feather icon-plus"></i> Add Relay Gateway
+          </button>
+        </div>
+        <div class="card-body">
+          @if (error) {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <i class="feather icon-alert-circle"></i> {{ error }}
+              <button type="button" class="btn-close" (click)="error = null"></button>
+            </div>
+          }
+
+          @if (loading) {
+            <div class="text-center p-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2 text-muted">Loading relay gateways...</p>
+            </div>
+          }
+
+          @if (!loading && relayGateways.length === 0) {
+            <div class="text-center p-5">
+              <i class="feather icon-inbox" style="font-size: 64px; color: #ccc;"></i>
+              <p class="mt-3 text-muted">No data</p>
+              <p class="text-muted">No relay gateways found. Click "Add Relay Gateway" to create one.</p>
+            </div>
+          }
+
+          @if (!loading && relayGateways.length > 0) {
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Last seen</th>
+                    <th>Relay ID</th>
+                    <th>Name</th>
+                    <th>Region ID</th>
+                    <th style="width: 100px;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (relayGateway of relayGateways; track relayGateway.relayId) {
+                    <tr style="cursor: pointer;">
+                      <td (click)="viewRelayGateway(relayGateway)">
+                        <small>{{ formatDate(relayGateway.lastSeenAt) }}</small>
+                      </td>
+                      <td (click)="viewRelayGateway(relayGateway)">
+                        <strong>{{ relayGateway.relayId }}</strong>
+                      </td>
+                      <td (click)="viewRelayGateway(relayGateway)">
+                        {{ relayGateway.name }}
+                        @if (relayGateway.description) {
+                          <br>
+                          <small class="text-muted">{{ relayGateway.description }}</small>
+                        }
+                      </td>
+                      <td (click)="viewRelayGateway(relayGateway)">
+                        <span class="badge bg-secondary">Unknown</span>
+                      </td>
+                      <td>
+                        <button class="btn btn-sm btn-icon btn-link-danger" (click)="deleteRelayGateway(relayGateway)" title="Delete">
+                          <i class="feather icon-trash-2"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (totalPages > 1) {
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                  <small class="text-muted">
+                    Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalCount) }} of {{ totalCount }} entries
+                  </small>
+                </div>
+                <nav>
+                  <ul class="pagination mb-0">
+                    <li class="page-item" [class.disabled]="currentPage === 1">
+                      <a class="page-link" (click)="previousPage()">Previous</a>
+                    </li>
+                    @for (page of [].constructor(totalPages); track page; let i = $index) {
+                      <li class="page-item" [class.active]="currentPage === i + 1">
+                        <a class="page-link" (click)="goToPage(i + 1)">{{ i + 1 }}</a>
+                      </li>
+                    }
+                    <li class="page-item" [class.disabled]="currentPage === totalPages">
+                      <a class="page-link" (click)="nextPage()">Next</a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Relay Gateway Modal -->
+@if (showAddModal) {
+  <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Relay Gateway</h5>
+          <button type="button" class="btn-close" (click)="closeAddModal()"></button>
+        </div>
+        <div class="modal-body">
+          @if (error) {
+            <div class="alert alert-danger">
+              <i class="feather icon-alert-circle"></i> {{ error }}
+            </div>
+          }
+
+          <form>
+            <div class="mb-3">
+              <label for="relayId" class="form-label">Relay ID <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="relayId" [(ngModel)]="newRelayGateway.relayId" name="relayId" placeholder="e.g., 0000000000000001" required>
+              <small class="form-text text-muted">16 character hexadecimal relay identifier</small>
+            </div>
+
+            <div class="mb-3">
+              <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="name" [(ngModel)]="newRelayGateway.name" name="name" placeholder="Relay gateway name" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea class="form-control" id="description" [(ngModel)]="newRelayGateway.description" name="description" rows="3" placeholder="Optional description"></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label for="statsInterval" class="form-label">Stats interval (seconds)</label>
+              <input type="number" class="form-control" id="statsInterval" [(ngModel)]="newRelayGateway.statsInterval" name="statsInterval" placeholder="30">
+              <small class="form-text text-muted">Interval for collecting statistics</small>
+            </div>
+
+            <div class="mb-3">
+              <label for="regionConfigId" class="form-label">Region configuration ID</label>
+              <input type="text" class="form-control" id="regionConfigId" [(ngModel)]="newRelayGateway.regionConfigId" name="regionConfigId" placeholder="Optional region config ID">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeAddModal()" [disabled]="saving">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="saveRelayGateway()" [disabled]="saving">
+            @if (saving) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+            }
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+

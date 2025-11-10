@@ -1,0 +1,18 @@
+// Pagination component styles
+.pagination {
+  .page-link {
+    &:hover {
+      background-color: #f8f9fa;
+    }
+  }
+
+  .page-item.active .page-link {
+    background-color: #00ADA4;
+    border-color: #00ADA4;
+  }
+
+  .page-item.disabled .page-link {
+    cursor: not-allowed;
+  }
+}
+

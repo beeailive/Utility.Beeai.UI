@@ -1,0 +1,160 @@
+.toast-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 400px;
+  pointer-events: none;
+}
+
+.toast {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  min-width: 300px;
+  max-width: 400px;
+  pointer-events: auto;
+  border-left: 4px solid;
+  animation: slideIn 0.3s ease-out;
+}
+
+.toast-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.toast-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.toast-title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #666;
+  font-size: 18px;
+  line-height: 1;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  i {
+    font-size: 16px;
+  }
+}
+
+.toast-body {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+}
+
+// Toast type styles
+.toast-success {
+  border-left-color: #2ed8b6;
+
+  .toast-icon {
+    color: #2ed8b6;
+  }
+
+  .toast-title {
+    color: #2ed8b6;
+  }
+}
+
+.toast-error {
+  border-left-color: #ff5370;
+
+  .toast-icon {
+    color: #ff5370;
+  }
+
+  .toast-title {
+    color: #ff5370;
+  }
+}
+
+.toast-warning {
+  border-left-color: #ffb64d;
+
+  .toast-icon {
+    color: #ffb64d;
+  }
+
+  .toast-title {
+    color: #ffb64d;
+  }
+}
+
+.toast-info {
+  border-left-color: #00ADA4;
+
+  .toast-icon {
+    color: #00ADA4;
+  }
+
+  .toast-title {
+    color: #00ADA4;
+  }
+}
+
+// Animations
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+// Responsive
+@media (max-width: 576px) {
+  .toast-container {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+
+  .toast {
+    min-width: auto;
+    max-width: none;
+  }
+}
+

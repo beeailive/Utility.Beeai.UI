@@ -1,0 +1,239 @@
+<div class="row">
+  <div class="col-sm-12">
+    <app-card cardTitle="Tenants" [options]="false">
+      <!-- Create Button -->
+      <div class="mb-3">
+        <button class="btn btn-primary" (click)="toggleCreateForm()">
+          <i class="feather icon-plus"></i> {{ showCreateForm ? 'Cancel' : 'Create Tenant' }}
+        </button>
+      </div>
+
+      <!-- Create Form -->
+      @if (showCreateForm) {
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Create New Tenant</h5>
+            <form (ngSubmit)="createTenant()">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="name" class="form-label">Name *</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="name"
+                    [(ngModel)]="newTenant.name"
+                    name="name"
+                    required
+                  />
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label for="maxGatewayCount" class="form-label">Max Gateway Count</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="maxGatewayCount"
+                    [(ngModel)]="newTenant.maxGatewayCount"
+                    name="maxGatewayCount"
+                  />
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label for="maxDeviceCount" class="form-label">Max Device Count</label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="maxDeviceCount"
+                    [(ngModel)]="newTenant.maxDeviceCount"
+                    name="maxDeviceCount"
+                  />
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-3 mb-3">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="canHaveGateways"
+                      [(ngModel)]="newTenant.canHaveGateways"
+                      name="canHaveGateways"
+                    />
+                    <label class="form-check-label" for="canHaveGateways">
+                      Can Have Gateways
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="privateGatewaysUp"
+                      [(ngModel)]="newTenant.privateGatewaysUp"
+                      name="privateGatewaysUp"
+                    />
+                    <label class="form-check-label" for="privateGatewaysUp">
+                      Private Gateways Up
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="privateGatewaysDown"
+                      [(ngModel)]="newTenant.privateGatewaysDown"
+                      name="privateGatewaysDown"
+                    />
+                    <label class="form-check-label" for="privateGatewaysDown">
+                      Private Gateways Down
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success" [disabled]="loading || !newTenant.name">
+                  <i class="feather icon-save"></i> Create
+                </button>
+                <button type="button" class="btn btn-secondary" (click)="toggleCreateForm()">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      }
+
+      @if (loading) {
+        <div class="text-center p-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      }
+
+      @if (error) {
+        <div class="alert alert-danger" role="alert">
+          {{ error }}
+        </div>
+      }
+
+      @if (!loading && !error) {
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Can Have Gateways</th>
+                <th>Max Gateways</th>
+                <th>Max Devices</th>
+                <th>Created At</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (tenants.length === 0) {
+                <tr>
+                  <td colspan="6" class="text-center">No tenants found</td>
+                </tr>
+              }
+              @for (tenant of tenants; track tenant.id) {
+                <tr>
+                  <td>{{ tenant.name }}</td>
+                  <td>
+                    @if (tenant.canHaveGateways) {
+                      <span class="badge bg-success">Yes</span>
+                    } @else {
+                      <span class="badge bg-secondary">No</span>
+                    }
+                  </td>
+                  <td>{{ tenant.maxGatewayCount || 'Unlimited' }}</td>
+                  <td>{{ tenant.maxDeviceCount || 'Unlimited' }}</td>
+                  <td>{{ tenant.createdAt | date: 'short' }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-danger" (click)="deleteTenant(tenant.id)">
+                      <i class="feather icon-trash-2"></i>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (totalCount > 0) {
+          <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-3">
+            <!-- Items per page selector -->
+            <div class="d-flex align-items-center gap-2">
+              <label class="mb-0 text-muted">Show:</label>
+              <select class="form-select form-select-sm" style="width: auto;" [(ngModel)]="pageSize" (change)="changePageSize(pageSize)">
+                @for (size of pageSizeOptions; track size) {
+                  <option [value]="size">{{ size }}</option>
+                }
+              </select>
+              <span class="text-muted">entries</span>
+            </div>
+
+            <!-- Page info -->
+            <div class="text-muted">
+              Showing {{ startIndex }} to {{ endIndex }} of {{ totalCount }} entries
+            </div>
+
+            <!-- Pagination controls -->
+            @if (totalPages > 1) {
+              <nav>
+                <ul class="pagination mb-0">
+                  <!-- Previous button -->
+                  <li class="page-item" [class.disabled]="currentPage === 1">
+                    <a class="page-link" (click)="previousPage()" style="cursor: pointer;">
+                      <i class="feather icon-chevron-left"></i>
+                    </a>
+                  </li>
+
+                  <!-- First page -->
+                  @if (pageNumbers[0] > 1) {
+                    <li class="page-item">
+                      <a class="page-link" (click)="goToPage(1)" style="cursor: pointer;">1</a>
+                    </li>
+                    @if (pageNumbers[0] > 2) {
+                      <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                      </li>
+                    }
+                  }
+
+                  <!-- Page numbers -->
+                  @for (page of pageNumbers; track page) {
+                    <li class="page-item" [class.active]="currentPage === page">
+                      <a class="page-link" (click)="goToPage(page)" style="cursor: pointer;">{{ page }}</a>
+                    </li>
+                  }
+
+                  <!-- Last page -->
+                  @if (pageNumbers[pageNumbers.length - 1] < totalPages) {
+                    @if (pageNumbers[pageNumbers.length - 1] < totalPages - 1) {
+                      <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                      </li>
+                    }
+                    <li class="page-item">
+                      <a class="page-link" (click)="goToPage(totalPages)" style="cursor: pointer;">{{ totalPages }}</a>
+                    </li>
+                  }
+
+                  <!-- Next button -->
+                  <li class="page-item" [class.disabled]="currentPage === totalPages">
+                    <a class="page-link" (click)="nextPage()" style="cursor: pointer;">
+                      <i class="feather icon-chevron-right"></i>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            }
+          </div>
+        }
+      }
+    </app-card>
+  </div>
+</div>

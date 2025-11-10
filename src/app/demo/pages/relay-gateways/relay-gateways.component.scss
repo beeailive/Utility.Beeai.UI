@@ -1,0 +1,19 @@
+.table {
+  tbody tr {
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+  }
+}
+
+.modal.show {
+  display: block;
+}
+
+.btn-icon {
+  padding: 0.25rem 0.5rem;
+  font-size: 1rem;
+}
+

@@ -1,0 +1,181 @@
+<div class="row">
+  <div class="col-sm-12">
+    <app-card [cardTitle]="'Tenant Users' + (selectedTenantName ? ' - ' + selectedTenantName : '')" [options]="false">
+
+      <!-- No Tenant Selected Message -->
+      <div *ngIf="!selectedTenantId" class="alert alert-warning">
+        <i class="feather icon-alert-circle"></i>
+        Please select a tenant from the dropdown to view and manage tenant users.
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="feather icon-alert-triangle"></i>
+        {{ error }}
+        <button type="button" class="btn-close" (click)="error = null"></button>
+      </div>
+
+      <!-- Add User Button -->
+      <div *ngIf="selectedTenantId && !showAddForm" class="mb-3">
+        <button class="btn btn-primary" (click)="toggleAddForm()">
+          <i class="feather icon-plus"></i> Add User to Tenant
+        </button>
+      </div>
+
+      <!-- Add User Form -->
+      <div *ngIf="showAddForm" class="card mb-3">
+        <div class="card-header">
+          <h5>Add User to Tenant</h5>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="addTenantUser()">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">User Email <span class="text-danger">*</span></label>
+                <input
+                  type="email"
+                  class="form-control"
+                  [(ngModel)]="newUserEmail"
+                  name="email"
+                  placeholder="user@example.com"
+                  required>
+                <small class="form-text text-muted">Enter the email of an existing user</small>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    [(ngModel)]="newUserIsAdmin"
+                    name="isAdmin"
+                    id="newIsAdmin">
+                  <label class="form-check-label" for="newIsAdmin">
+                    Is Admin
+                  </label>
+                  <small class="form-text text-muted d-block">Full tenant admin access</small>
+                </div>
+              </div>
+
+              <div class="col-md-4 mb-3">
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    [(ngModel)]="newUserIsDeviceAdmin"
+                    name="isDeviceAdmin"
+                    id="newIsDeviceAdmin">
+                  <label class="form-check-label" for="newIsDeviceAdmin">
+                    Is Device Admin
+                  </label>
+                  <small class="form-text text-muted d-block">Can manage devices</small>
+                </div>
+              </div>
+
+              <div class="col-md-4 mb-3">
+                <div class="form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    [(ngModel)]="newUserIsGatewayAdmin"
+                    name="isGatewayAdmin"
+                    id="newIsGatewayAdmin">
+                  <label class="form-check-label" for="newIsGatewayAdmin">
+                    Is Gateway Admin
+                  </label>
+                  <small class="form-text text-muted d-block">Can manage gateways</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-success" [disabled]="loading || !newUserEmail">
+                <i class="feather icon-save"></i> Add User
+              </button>
+              <button type="button" class="btn btn-secondary" (click)="toggleAddForm()">
+                <i class="feather icon-x"></i> Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loading && !showAddForm" class="text-center py-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading tenant users...</p>
+      </div>
+
+      <!-- Tenant Users Table -->
+      <div *ngIf="selectedTenantId && !loading" class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>User ID</th>
+              <th>Admin</th>
+              <th>Device Admin</th>
+              <th>Gateway Admin</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="tenantUsers.length === 0">
+              <td colspan="6" class="text-center text-muted py-4">
+                <i class="feather icon-users" style="font-size: 48px;"></i>
+                <p class="mt-2">No users assigned to this tenant yet.</p>
+                <button class="btn btn-sm btn-primary" (click)="toggleAddForm()">
+                  <i class="feather icon-plus"></i> Add First User
+                </button>
+              </td>
+            </tr>
+            <tr *ngFor="let user of tenantUsers">
+              <td>
+                <strong>{{ user.email }}</strong>
+              </td>
+              <td>
+                <code class="text-muted">{{ user.userId }}</code>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="user.isAdmin ? 'bg-success' : 'bg-secondary'">
+                  {{ user.isAdmin ? 'Yes' : 'No' }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="user.isDeviceAdmin ? 'bg-info' : 'bg-secondary'">
+                  {{ user.isDeviceAdmin ? 'Yes' : 'No' }}
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="user.isGatewayAdmin ? 'bg-warning' : 'bg-secondary'">
+                  {{ user.isGatewayAdmin ? 'Yes' : 'No' }}
+                </span>
+              </td>
+              <td>
+                <button
+                  class="btn btn-sm btn-danger"
+                  (click)="deleteTenantUser(user.userId, user.email)"
+                  title="Remove user from tenant">
+                  <i class="feather icon-trash-2"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Total Count -->
+        <div *ngIf="tenantUsers.length > 0" class="mt-3">
+          <p class="text-muted">
+            <strong>Total Users:</strong> {{ totalCount }}
+          </p>
+        </div>
+      </div>
+
+    </app-card>
+  </div>
+</div>
+

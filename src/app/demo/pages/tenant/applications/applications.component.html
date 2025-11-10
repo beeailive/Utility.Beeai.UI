@@ -1,0 +1,57 @@
+<div class="row">
+  <div class="col-sm-12">
+    <app-card cardTitle="Applications" [options]="false">
+      @if (loading) {
+        <div class="text-center p-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      }
+
+      @if (error) {
+        <div class="alert alert-danger" role="alert">
+          {{ error }}
+        </div>
+      }
+
+      @if (!loading && !error) {
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Created At</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (applications.length === 0) {
+                <tr>
+                  <td colspan="4" class="text-center">No applications found</td>
+                </tr>
+              }
+              @for (app of applications; track app.id) {
+                <tr style="cursor: pointer;" (click)="viewApplication(app.id)">
+                  <td>{{ app.name }}</td>
+                  <td>{{ app.description || 'N/A' }}</td>
+                  <td>{{ app.createdAt | date: 'short' }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-danger" (click)="$event.stopPropagation(); deleteApplication(app.id)">
+                      <i class="feather icon-trash-2"></i>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-3">
+          <p class="text-muted">Total: {{ totalCount }} application(s)</p>
+        </div>
+      }
+    </app-card>
+  </div>
+</div>
+

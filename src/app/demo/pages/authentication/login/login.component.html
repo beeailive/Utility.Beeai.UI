@@ -1,0 +1,53 @@
+<div class="auth-wrapper">
+  <div class="auth-content">
+    <div class="card">
+      <div class="card-body text-center">
+        <div class="mb-4">
+          <i class="feather icon-unlock auth-icon"></i>
+        </div>
+        <h3 class="mb-4">Login</h3>
+        
+        <!-- Error Message -->
+        <div *ngIf="error" class="alert alert-danger" role="alert">
+          <i class="feather icon-alert-circle"></i>
+          {{ error }}
+        </div>
+
+        <form (ngSubmit)="onSubmit()">
+          <div class="input-group mb-3">
+            <span class="input-group-text"><i class="feather icon-mail"></i></span>
+            <input 
+              type="email" 
+              class="form-control" 
+              placeholder="Email" 
+              [(ngModel)]="email" 
+              name="email"
+              required
+              [disabled]="loading">
+          </div>
+          <div class="input-group mb-4">
+            <span class="input-group-text"><i class="feather icon-lock"></i></span>
+            <input 
+              type="password" 
+              class="form-control" 
+              placeholder="Password" 
+              [(ngModel)]="password" 
+              name="password"
+              required
+              [disabled]="loading">
+          </div>
+          
+          <button class="btn btn-primary mb-4 w-100" type="submit" [disabled]="loading">
+            <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+            {{ loading ? 'Logging in...' : 'Login' }}
+          </button>
+        </form>
+
+        <p class="mb-2 text-muted">
+          Don't have an account? <a routerLink="/signup" class="f-w-400">Signup</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+

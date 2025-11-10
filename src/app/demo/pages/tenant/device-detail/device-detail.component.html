@@ -1,0 +1,989 @@
+<div class="row">
+  <div class="col-sm-12">
+    <!-- Loading State -->
+    @if (loading) {
+      <div class="text-center p-4">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error) {
+      <div class="alert alert-danger" role="alert">
+        {{ error }}
+      </div>
+    }
+
+    <!-- Device Detail Content -->
+    @if (!loading && device) {
+      <app-card [options]="false">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-outline-secondary" (click)="goBack()">
+              <i class="feather icon-arrow-left"></i> Back
+            </button>
+            <div>
+              <h4 class="mb-0">{{ device.device.name }}</h4>
+              <small class="text-muted">{{ device.device.description || 'No description' }}</small>
+            </div>
+          </div>
+          <button class="btn btn-danger">
+            <i class="feather icon-trash-2"></i> Delete
+          </button>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs mb-4" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="activeTab === 'dashboard'" (click)="setActiveTab('dashboard')" style="cursor: pointer;">
+              Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="activeTab === 'configuration'" (click)="setActiveTab('configuration')" style="cursor: pointer;">
+              Configuration
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="activeTab === 'otaa-keys'" (click)="setActiveTab('otaa-keys')" style="cursor: pointer;">
+              OTAA keys
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="activeTab === 'activation'" (click)="setActiveTab('activation')" style="cursor: pointer;">
+              Activation
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="activeTab === 'queue'" (click)="setActiveTab('queue')" style="cursor: pointer;">
+              Queue
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="activeTab === 'events'" (click)="setActiveTab('events')" style="cursor: pointer;">
+              Events
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="activeTab === 'lorawan-frames'" (click)="setActiveTab('lorawan-frames')" style="cursor: pointer;">
+              LoRaWAN frames
+            </a>
+          </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <!-- Dashboard Tab -->
+          @if (activeTab === 'dashboard') {
+            <div class="tab-pane active">
+              <!-- Device Info -->
+              <div class="row mb-4">
+                <div class="col-md-3">
+                  <div class="mb-2">
+                    <small class="text-muted">Last seen</small>
+                    <div>{{ device.lastSeenAt ? (device.lastSeenAt | date: 'medium') : 'Never' }}</div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="mb-2">
+                    <small class="text-muted">Device profile</small>
+                    <div>{{ device.device.deviceProfileId }}</div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="mb-2">
+                    <small class="text-muted">DevEUI</small>
+                    <div>{{ device.device.devEui }}</div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="mb-2">
+                    <small class="text-muted">Enabled</small>
+                    <div>
+                      @if (!device.device.isDisabled) {
+                        <span class="badge bg-success">Yes</span>
+                      } @else {
+                        <span class="badge bg-danger">No</span>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Metrics Sub-Tabs -->
+              <ul class="nav nav-tabs nav-tabs-sm mb-3" role="tablist">
+                <li class="nav-item">
+                  <a class="nav-link" [class.active]="activeMetricsTab === 'link-metrics'" (click)="setActiveMetricsTab('link-metrics')" style="cursor: pointer;">
+                    Link metrics
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" [class.active]="activeMetricsTab === 'device-metrics'" (click)="setActiveMetricsTab('device-metrics')" style="cursor: pointer;">
+                    Device metrics
+                  </a>
+                </li>
+              </ul>
+
+              <!-- Link Metrics Tab Content -->
+              @if (activeMetricsTab === 'link-metrics') {
+                @if (linkMetricsLoading) {
+                  <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading link metrics...</p>
+                  </div>
+                }
+
+                @if (!linkMetricsLoading) {
+                  <div class="d-flex gap-2 mb-3">
+                    <button
+                      class="btn btn-sm"
+                      [class.btn-outline-secondary]="selectedTimeRange !== '24h'"
+                      [class.btn-secondary]="selectedTimeRange === '24h'"
+                      (click)="selectTimeRange('24h')">
+                      24h
+                    </button>
+                    <button
+                      class="btn btn-sm"
+                      [class.btn-outline-secondary]="selectedTimeRange !== '31d'"
+                      [class.btn-secondary]="selectedTimeRange === '31d'"
+                      (click)="selectTimeRange('31d')">
+                      31d
+                    </button>
+                    <button
+                      class="btn btn-sm"
+                      [class.btn-outline-secondary]="selectedTimeRange !== '1y'"
+                      [class.btn-secondary]="selectedTimeRange === '1y'"
+                      (click)="selectTimeRange('1y')">
+                      1y
+                    </button>
+                    <button
+                      class="btn btn-sm btn-outline-primary ms-auto"
+                      (click)="refreshLinkMetrics()">
+                      <i class="feather icon-refresh-cw"></i>
+                    </button>
+                  </div>
+
+                  <!-- Charts Grid -->
+                  <div class="row">
+                <!-- Received Chart -->
+                <div class="col-md-6 mb-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h6 class="card-title">Received</h6>
+                      @if (receivedChartOptions) {
+                        <div id="received-chart"></div>
+                        <apx-chart
+                          [series]="receivedChartOptions.series"
+                          [chart]="receivedChartOptions.chart"
+                          [dataLabels]="receivedChartOptions.dataLabels"
+                          [stroke]="receivedChartOptions.stroke"
+                          [fill]="receivedChartOptions.fill"
+                          [colors]="receivedChartOptions.colors"
+                          [xaxis]="receivedChartOptions.xaxis"
+                          [yaxis]="receivedChartOptions.yaxis"
+                          [tooltip]="receivedChartOptions.tooltip"
+                        ></apx-chart>
+                      } @else {
+                        <div class="text-center py-4">
+                          <i class="feather icon-bar-chart-2" style="font-size: 32px; color: #ccc;"></i>
+                          <p class="text-muted mt-2">No data available</p>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <!-- RSSI Chart -->
+                <div class="col-md-6 mb-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h6 class="card-title">RSSI</h6>
+                      @if (rssiChartOptions) {
+                        <apx-chart
+                          [series]="rssiChartOptions.series"
+                          [chart]="rssiChartOptions.chart"
+                          [dataLabels]="rssiChartOptions.dataLabels"
+                          [stroke]="rssiChartOptions.stroke"
+                          [fill]="rssiChartOptions.fill"
+                          [colors]="rssiChartOptions.colors"
+                          [xaxis]="rssiChartOptions.xaxis"
+                          [yaxis]="rssiChartOptions.yaxis"
+                          [tooltip]="rssiChartOptions.tooltip"
+                        ></apx-chart>
+                      } @else {
+                        <div class="text-center py-4">
+                          <i class="feather icon-bar-chart-2" style="font-size: 32px; color: #ccc;"></i>
+                          <p class="text-muted mt-2">No data available</p>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <!-- SNR Chart -->
+                <div class="col-md-6 mb-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h6 class="card-title">SNR</h6>
+                      @if (snrChartOptions) {
+                        <apx-chart
+                          [series]="snrChartOptions.series"
+                          [chart]="snrChartOptions.chart"
+                          [dataLabels]="snrChartOptions.dataLabels"
+                          [stroke]="snrChartOptions.stroke"
+                          [fill]="snrChartOptions.fill"
+                          [colors]="snrChartOptions.colors"
+                          [xaxis]="snrChartOptions.xaxis"
+                          [yaxis]="snrChartOptions.yaxis"
+                          [tooltip]="snrChartOptions.tooltip"
+                        ></apx-chart>
+                      } @else {
+                        <div class="text-center py-4">
+                          <i class="feather icon-bar-chart-2" style="font-size: 32px; color: #ccc;"></i>
+                          <p class="text-muted mt-2">No data available</p>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Received / frequency Chart -->
+                <div class="col-md-6 mb-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h6 class="card-title">Received / frequency</h6>
+                      @if (receivedFreqChartOptions) {
+                        <apx-chart
+                          [series]="receivedFreqChartOptions.series"
+                          [chart]="receivedFreqChartOptions.chart"
+                          [plotOptions]="receivedFreqChartOptions.plotOptions"
+                          [dataLabels]="receivedFreqChartOptions.dataLabels"
+                          [colors]="receivedFreqChartOptions.colors"
+                          [xaxis]="receivedFreqChartOptions.xaxis"
+                          [yaxis]="receivedFreqChartOptions.yaxis"
+                        ></apx-chart>
+                      } @else {
+                        <div class="text-center py-4">
+                          <i class="feather icon-bar-chart-2" style="font-size: 32px; color: #ccc;"></i>
+                          <p class="text-muted mt-2">No data available</p>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Received / DR Chart -->
+                <div class="col-md-6 mb-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h6 class="card-title">Received / DR</h6>
+                      @if (receivedDrChartOptions) {
+                        <apx-chart
+                          [series]="receivedDrChartOptions.series"
+                          [chart]="receivedDrChartOptions.chart"
+                          [plotOptions]="receivedDrChartOptions.plotOptions"
+                          [dataLabels]="receivedDrChartOptions.dataLabels"
+                          [colors]="receivedDrChartOptions.colors"
+                          [xaxis]="receivedDrChartOptions.xaxis"
+                          [yaxis]="receivedDrChartOptions.yaxis"
+                        ></apx-chart>
+                      } @else {
+                        <div class="text-center py-4">
+                          <i class="feather icon-bar-chart-2" style="font-size: 32px; color: #ccc;"></i>
+                          <p class="text-muted mt-2">No data available</p>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Errors Chart -->
+                <div class="col-md-6 mb-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h6 class="card-title">Errors</h6>
+                      @if (errorsChartOptions) {
+                        <apx-chart
+                          [series]="errorsChartOptions.series"
+                          [chart]="errorsChartOptions.chart"
+                          [dataLabels]="errorsChartOptions.dataLabels"
+                          [stroke]="errorsChartOptions.stroke"
+                          [fill]="errorsChartOptions.fill"
+                          [colors]="errorsChartOptions.colors"
+                          [xaxis]="errorsChartOptions.xaxis"
+                          [yaxis]="errorsChartOptions.yaxis"
+                          [tooltip]="errorsChartOptions.tooltip"
+                        ></apx-chart>
+                      } @else {
+                        <div class="text-center py-4">
+                          <i class="feather icon-bar-chart-2" style="font-size: 32px; color: #ccc;"></i>
+                          <p class="text-muted mt-2">No data available</p>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+                }
+              }
+
+              <!-- Device Metrics Tab Content -->
+              @if (activeMetricsTab === 'device-metrics') {
+                @if (deviceMetricsLoading) {
+                  <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </div>
+                }
+
+                @if (!deviceMetricsLoading && deviceMetricsCharts.size > 0) {
+                  <div class="row">
+                    @for (entry of Array.from(deviceMetricsCharts.entries()); track entry[0]) {
+                      <div class="col-md-6 mb-4">
+                        <div class="card">
+                          <div class="card-body">
+                            <h6 class="card-title">{{ entry[0] }}</h6>
+                            <apx-chart
+                              [series]="entry[1].series"
+                              [chart]="entry[1].chart"
+                              [dataLabels]="entry[1].dataLabels"
+                              [stroke]="entry[1].stroke"
+                              [colors]="entry[1].colors"
+                              [xaxis]="entry[1].xaxis"
+                              [yaxis]="entry[1].yaxis"
+                              [tooltip]="entry[1].tooltip"
+                              [legend]="entry[1].legend"
+                            ></apx-chart>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+
+                @if (!deviceMetricsLoading && deviceMetricsCharts.size === 0) {
+                  <div class="alert alert-info">
+                    <i class="feather icon-info"></i> No device metrics available. Make sure the device profile has measurements configured.
+                  </div>
+                }
+              }
+            </div>
+          }
+
+          <!-- Configuration Tab -->
+          @if (activeTab === 'configuration') {
+            <div class="tab-pane active">
+              <h5 class="mb-3">Device Configuration</h5>
+              <div class="row">
+                <div class="col-md-6">
+                  <table class="table table-bordered">
+                    <tbody>
+                      <tr>
+                        <td><strong>DevEUI</strong></td>
+                        <td>{{ device.device.devEui }}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Name</strong></td>
+                        <td>{{ device.device.name }}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Description</strong></td>
+                        <td>{{ device.device.description || 'N/A' }}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Application ID</strong></td>
+                        <td>{{ device.device.applicationId }}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Device Profile ID</strong></td>
+                        <td>{{ device.device.deviceProfileId }}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Skip FCnt Check</strong></td>
+                        <td>{{ device.device.skipFcntCheck ? 'Yes' : 'No' }}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Is Disabled</strong></td>
+                        <td>{{ device.device.isDisabled ? 'Yes' : 'No' }}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Join EUI</strong></td>
+                        <td>{{ device.device.joinEui || 'N/A' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="col-md-6">
+                  <h6>Variables</h6>
+                  @if (device.device.variables && Object.keys(device.device.variables).length > 0) {
+                    <table class="table table-bordered">
+                      <thead>
+                        <tr>
+                          <th>Key</th>
+                          <th>Value</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (key of Object.keys(device.device.variables); track key) {
+                          <tr>
+                            <td>{{ key }}</td>
+                            <td>{{ device.device.variables[key] }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  } @else {
+                    <p class="text-muted">No variables defined</p>
+                  }
+
+                  <h6 class="mt-3">Tags</h6>
+                  @if (device.device.tags && Object.keys(device.device.tags).length > 0) {
+                    <table class="table table-bordered">
+                      <thead>
+                        <tr>
+                          <th>Key</th>
+                          <th>Value</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (key of Object.keys(device.device.tags); track key) {
+                          <tr>
+                            <td>{{ key }}</td>
+                            <td>{{ device.device.tags[key] }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  } @else {
+                    <p class="text-muted">No tags defined</p>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- OTAA Keys Tab -->
+          @if (activeTab === 'otaa-keys') {
+            <div class="tab-pane active">
+              <h5 class="mb-3">OTAA Keys</h5>
+
+              @if (deviceKeysLoading) {
+                <div class="text-center p-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              }
+
+              @if (deviceKeysError) {
+                <div class="alert alert-danger" role="alert">
+                  {{ deviceKeysError }}
+                </div>
+              }
+
+              @if (!deviceKeysLoading && !deviceKeysError && deviceKeys) {
+                <div class="row">
+                  <div class="col-md-6">
+                    <table class="table table-bordered">
+                      <tbody>
+                        <tr>
+                          <td><strong>NwkKey</strong></td>
+                          <td>{{ deviceKeys.deviceKeys?.nwkKey || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>AppKey</strong></td>
+                          <td>{{ deviceKeys.deviceKeys?.appKey || 'N/A' }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              }
+
+              @if (!deviceKeysLoading && !deviceKeysError && !deviceKeys) {
+                <div class="alert alert-info">
+                  <i class="feather icon-info"></i> No OTAA keys configured for this device.
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Activation Tab -->
+          @if (activeTab === 'activation') {
+            <div class="tab-pane active">
+              <h5 class="mb-3">Device Activation</h5>
+
+              @if (deviceActivationLoading) {
+                <div class="text-center p-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              }
+
+              @if (deviceActivationError) {
+                <div class="alert alert-danger" role="alert">
+                  {{ deviceActivationError }}
+                </div>
+              }
+
+              @if (!deviceActivationLoading && !deviceActivationError && deviceActivation) {
+                <div class="row">
+                  <div class="col-md-6">
+                    <table class="table table-bordered">
+                      <tbody>
+                        <tr>
+                          <td><strong>DevAddr</strong></td>
+                          <td>{{ deviceActivation.deviceActivation?.devAddr || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>AppSKey</strong></td>
+                          <td>{{ deviceActivation.deviceActivation?.appSKey || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>NwkSEncKey</strong></td>
+                          <td>{{ deviceActivation.deviceActivation?.nwkSEncKey || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>SNwkSIntKey</strong></td>
+                          <td>{{ deviceActivation.deviceActivation?.sNwkSIntKey || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>FNwkSIntKey</strong></td>
+                          <td>{{ deviceActivation.deviceActivation?.fNwkSIntKey || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>FCnt Up</strong></td>
+                          <td>{{ deviceActivation.deviceActivation?.fCntUp || 0 }}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>NFCnt Down</strong></td>
+                          <td>{{ deviceActivation.deviceActivation?.nFCntDown || 0 }}</td>
+                        </tr>
+                        <tr>
+                          <td><strong>AFCnt Down</strong></td>
+                          <td>{{ deviceActivation.deviceActivation?.aFCntDown || 0 }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              }
+
+              @if (!deviceActivationLoading && !deviceActivationError && !deviceActivation) {
+                <div class="alert alert-info">
+                  <i class="feather icon-info"></i> Device is not activated yet.
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Queue Tab -->
+          @if (activeTab === 'queue') {
+            <div class="tab-pane active">
+              <!-- Enqueue Form -->
+              <div class="card mb-4">
+                <div class="card-header">
+                  <h5 class="mb-0">Enqueue</h5>
+                </div>
+                <div class="card-body">
+                  <form #enqueueForm="ngForm" (ngSubmit)="enqueueItem()">
+                    <div class="row">
+                      <div class="col-md-6 mb-3">
+                        <label class="form-label">
+                          Confirmed
+                          <input
+                            type="checkbox"
+                            class="form-check-input ms-2"
+                            [(ngModel)]="queueItemForm.confirmed"
+                            name="confirmed">
+                        </label>
+                      </div>
+                      <div class="col-md-6 mb-3">
+                        <label class="form-label">FPort <span class="text-danger">*</span></label>
+                        <input
+                          type="number"
+                          class="form-control"
+                          [(ngModel)]="queueItemForm.fPort"
+                          name="fPort"
+                          required
+                          min="1"
+                          max="223"
+                          placeholder="1">
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-6 mb-3">
+                        <label class="form-label">
+                          Is encrypted
+                          <input
+                            type="checkbox"
+                            class="form-check-input ms-2"
+                            [(ngModel)]="queueItemForm.isEncrypted"
+                            name="isEncrypted">
+                        </label>
+                      </div>
+                      <div class="col-md-6 mb-3">
+                        <label class="form-label">Expires at</label>
+                        <input
+                          type="datetime-local"
+                          class="form-control"
+                          [(ngModel)]="queueItemForm.expiresAt"
+                          name="expiresAt">
+                      </div>
+                    </div>
+
+                    <!-- Tabs for HEX, BASE64, JSON -->
+                    <div class="mb-3">
+                      <ul class="nav nav-tabs">
+                        <li class="nav-item">
+                          <a class="nav-link" [class.active]="queueDataFormat === 'hex'" (click)="queueDataFormat = 'hex'" style="cursor: pointer;">HEX</a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link" [class.active]="queueDataFormat === 'base64'" (click)="queueDataFormat = 'base64'" style="cursor: pointer;">BASE64</a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link" [class.active]="queueDataFormat === 'json'" (click)="queueDataFormat = 'json'" style="cursor: pointer;">JSON</a>
+                        </li>
+                      </ul>
+                      <div class="mt-3">
+                        <textarea
+                          class="form-control"
+                          rows="4"
+                          [(ngModel)]="queueItemForm.data"
+                          name="data"
+                          [placeholder]="queueDataFormat === 'hex' ? 'Enter hex data' : queueDataFormat === 'base64' ? 'Enter base64 data' : 'Enter JSON data'"></textarea>
+                      </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                      <button type="submit" class="btn btn-primary" [disabled]="!enqueueForm.valid || enqueueing">
+                        @if (enqueueing) {
+                          <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Enqueue
+                      </button>
+                      <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary" (click)="reloadQueue()">
+                          <i class="feather icon-refresh-cw"></i> Reload
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" (click)="flushQueue()">
+                          <i class="feather icon-trash-2"></i> Flush queue
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+
+                  @if (enqueueError) {
+                    <div class="alert alert-danger mt-3 mb-0">
+                      <i class="feather icon-alert-circle"></i> {{ enqueueError }}
+                    </div>
+                  }
+
+                  @if (enqueueSuccess) {
+                    <div class="alert alert-success mt-3 mb-0">
+                      <i class="feather icon-check-circle"></i> {{ enqueueSuccess }}
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Queue List -->
+              <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0">Queue Items</h5>
+                </div>
+                <div class="card-body">
+                  @if (deviceQueueLoading) {
+                    <div class="text-center p-4">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                    </div>
+                  }
+
+                  @if (deviceQueueError) {
+                    <div class="alert alert-danger" role="alert">
+                      {{ deviceQueueError }}
+                    </div>
+                  }
+
+                  @if (!deviceQueueLoading && !deviceQueueError) {
+                    @if (deviceQueue.length > 0) {
+                      <div class="table-responsive">
+                        <table class="table table-hover">
+                          <thead>
+                            <tr>
+                              <th>ID</th>
+                              <th>FPort</th>
+                              <th>Confirmed</th>
+                              <th>Data (HEX)</th>
+                              <th>Pending</th>
+                              <th>Encrypted</th>
+                              <th>FCnt Down</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (item of deviceQueue; track item.id) {
+                              <tr>
+                                <td>{{ item.id }}</td>
+                                <td><span class="badge bg-light text-dark">{{ item.fPort }}</span></td>
+                                <td>
+                                  @if (item.confirmed) {
+                                    <span class="badge bg-success">Yes</span>
+                                  } @else {
+                                    <span class="badge bg-secondary">No</span>
+                                  }
+                                </td>
+                                <td><code>{{ item.data }}</code></td>
+                                <td>
+                                  @if (item.isPending) {
+                                    <span class="badge bg-warning">Pending</span>
+                                  } @else {
+                                    <span class="badge bg-success">Sent</span>
+                                  }
+                                </td>
+                                <td>
+                                  @if (item.isEncrypted) {
+                                    <span class="badge bg-info">Yes</span>
+                                  } @else {
+                                    <span class="badge bg-secondary">No</span>
+                                  }
+                                </td>
+                                <td>{{ item.fCntDown || 'N/A' }}</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    } @else {
+                      <div class="alert alert-info mb-0">
+                        <i class="feather icon-info"></i> No items in device queue.
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (activeTab === 'events') {
+            <div class="tab-pane active">
+              @if (deviceEventsLoading) {
+                <div class="text-center p-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <p class="mt-2 text-muted">Loading device events...</p>
+                </div>
+              }
+
+              @if (deviceEventsError) {
+                <div class="alert alert-danger">
+                  <i class="feather icon-alert-circle"></i> {{ deviceEventsError }}
+                </div>
+              }
+
+              @if (!deviceEventsLoading && !deviceEventsError) {
+                @if (deviceEvents.length > 0) {
+                  <div class="table-responsive">
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>Time</th>
+                          <th>Type</th>
+                          <th>DR</th>
+                          <th>FCnt</th>
+                          <th>FPort</th>
+                          <th>Data</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (event of deviceEvents; track event.time) {
+                          <tr>
+                            <td>
+                              <small>{{ event.time | date:'yyyy-MM-dd HH:mm:ss' }}</small>
+                            </td>
+                            <td>
+                              @if (event.type === 'up') {
+                                <span class="badge bg-primary">
+                                  <i class="feather icon-arrow-up"></i> up
+                                </span>
+                              } @else if (event.type === 'join') {
+                                <span class="badge bg-success">
+                                  <i class="feather icon-log-in"></i> join
+                                </span>
+                              } @else if (event.type === 'ack') {
+                                <span class="badge bg-info">
+                                  <i class="feather icon-check"></i> ack
+                                </span>
+                              } @else if (event.type === 'error') {
+                                <span class="badge bg-danger">
+                                  <i class="feather icon-alert-circle"></i> error
+                                </span>
+                              } @else {
+                                <span class="badge bg-secondary">{{ event.type }}</span>
+                              }
+                            </td>
+                            <td>
+                              @if (event.dr !== undefined && event.dr !== null) {
+                                <span class="badge bg-light text-dark">{{ event.dr }}</span>
+                              } @else {
+                                <span class="text-muted">-</span>
+                              }
+                            </td>
+                            <td>
+                              @if (event.fCnt !== undefined && event.fCnt !== null) {
+                                <code>{{ event.fCnt }}</code>
+                              } @else {
+                                <span class="text-muted">-</span>
+                              }
+                            </td>
+                            <td>
+                              @if (event.fPort !== undefined && event.fPort !== null) {
+                                <span class="badge bg-light text-dark">{{ event.fPort }}</span>
+                              } @else {
+                                <span class="text-muted">-</span>
+                              }
+                            </td>
+                            <td>
+                              @if (event.data) {
+                                <code class="text-truncate d-inline-block" style="max-width: 300px;">{{ event.data }}</code>
+                              } @else {
+                                <span class="text-muted">-</span>
+                              }
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                } @else {
+                  <div class="alert alert-info">
+                    <i class="feather icon-info"></i> No events found for this device.
+                  </div>
+                }
+              }
+            </div>
+          }
+
+          @if (activeTab === 'lorawan-frames') {
+            <div class="tab-pane active">
+              @if (lorawanFramesLoading) {
+                <div class="text-center p-4">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <p class="mt-2 text-muted">Loading LoRaWAN frames...</p>
+                </div>
+              }
+
+              @if (lorawanFramesError) {
+                <div class="alert alert-danger">
+                  <i class="feather icon-alert-circle"></i> {{ lorawanFramesError }}
+                </div>
+              }
+
+              @if (!lorawanFramesLoading && !lorawanFramesError) {
+                @if (lorawanFrames.length > 0) {
+                  <div class="table-responsive">
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>Time</th>
+                          <th>Type</th>
+                          <th>DevAddr</th>
+                          <th>DevEUI</th>
+                          <th>Gateway ID</th>
+                          <th>DR</th>
+                          <th>FCnt</th>
+                          <th>FPort</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (frame of lorawanFrames; track frame.time) {
+                          <tr>
+                            <td>
+                              <small>{{ frame.time | date:'yyyy-MM-dd HH:mm:ss' }}</small>
+                            </td>
+                            <td>
+                              @if (frame.type === 'ConfirmedDataUp' || frame.type === 'UnconfirmedDataUp') {
+                                <span class="badge bg-primary">
+                                  <i class="feather icon-arrow-up"></i> {{ frame.type }}
+                                </span>
+                              } @else if (frame.type === 'ConfirmedDataDown' || frame.type === 'UnconfirmedDataDown') {
+                                <span class="badge bg-info">
+                                  <i class="feather icon-arrow-down"></i> {{ frame.type }}
+                                </span>
+                              } @else {
+                                <span class="badge bg-secondary">{{ frame.type }}</span>
+                              }
+                            </td>
+                            <td>
+                              @if (frame.devAddr) {
+                                <code>{{ frame.devAddr }}</code>
+                              } @else {
+                                <span class="text-muted">-</span>
+                              }
+                            </td>
+                            <td>
+                              @if (frame.devEui) {
+                                <code>{{ frame.devEui }}</code>
+                              } @else {
+                                <span class="text-muted">-</span>
+                              }
+                            </td>
+                            <td>
+                              @if (frame.gatewayId) {
+                                <code class="text-truncate d-inline-block" style="max-width: 150px;">{{ frame.gatewayId }}</code>
+                              } @else {
+                                <span class="text-muted">-</span>
+                              }
+                            </td>
+                            <td>
+                              @if (frame.dr !== undefined && frame.dr !== null) {
+                                <span class="badge bg-light text-dark">{{ frame.dr }}</span>
+                              } @else {
+                                <span class="text-muted">-</span>
+                              }
+                            </td>
+                            <td>
+                              @if (frame.fCnt !== undefined && frame.fCnt !== null) {
+                                <code>{{ frame.fCnt }}</code>
+                              } @else {
+                                <span class="text-muted">-</span>
+                              }
+                            </td>
+                            <td>
+                              @if (frame.fPort !== undefined && frame.fPort !== null) {
+                                <span class="badge bg-light text-dark">{{ frame.fPort }}</span>
+                              } @else {
+                                <span class="text-muted">-</span>
+                              }
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                } @else {
+                  <div class="alert alert-info">
+                    <i class="feather icon-info"></i> No LoRaWAN frames found for this device.
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+      </app-card>
+    }
+  </div>
+</div>
+
