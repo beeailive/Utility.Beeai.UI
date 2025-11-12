@@ -22,7 +22,6 @@ export class AppComponent implements OnInit {
     // Set static token for development (TEMPORARY - Remove in production)
     const staticToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjaGlycHN0YWNrIiwiaXNzIjoiY2hpcnBzdGFjayIsInN1YiI6IjgwMmFhOTNiLWY4ZDItNDZkMC1iNmE2LTk2MDYzY2Q1ODI3YSIsInR5cCI6ImtleSJ9.lzeF2I5fqQgytgiM4hxDpdw1IKsQXwaykhHnF9M8350'; // Replace with your actual token
     this.authService.setToken(staticToken);
-    console.log('Static token set for development');
 
     this.router.events.subscribe((evt) => {
       if (!(evt instanceof NavigationEnd)) {
