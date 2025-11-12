@@ -47,6 +47,13 @@ export const NavigationItems: NavigationItem[] = [
         icon: 'feather icon-user'
       },
       {
+        id: 'create-user',
+        title: 'Create User',
+        type: 'item',
+        url: '/create-user',
+        icon: 'feather icon-user'
+      },
+      {
         id: 'api-keys',
         title: 'API Keys',
         type: 'item',
