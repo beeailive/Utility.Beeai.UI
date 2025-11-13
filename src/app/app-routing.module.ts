@@ -29,6 +29,10 @@ const routes: Routes = [
         loadComponent: () => import('./demo/pages/users/users.component').then((c) => c.UsersComponent)
       },
       {
+        path: 'create-user',
+        loadComponent: () => import('./demo/pages/create-user/create-user').then((c) => c.CreateUser)
+      },
+      {
         path: 'api-keys',
         loadComponent: () => import('./demo/pages/api-keys/api-keys.component').then((c) => c.ApiKeysComponent)
       },
