@@ -7,15 +7,35 @@ import { AdminComponent } from './theme/layout/admin/admin.component';
 import { GuestComponent } from './theme/layout/guest/guest.component';
 
 const routes: Routes = [
+
   {
+    path: '',
+    component: GuestComponent,
+    children: [
+       {
+        path: '',
+        redirectTo: '/login',
+        pathMatch: 'full'
+      },
+      {
+        path: 'login',
+        loadComponent: () => import('./demo/pages/authentication/login/login.component').then((c) => c.LoginComponent)
+      },
+      {
+        path: 'signup',
+        loadComponent: () => import('./demo/pages/authentication/signup/signup.component').then((c) => c.SignupComponent)
+      }
+    ]
+  },
+    {
     path: '',
     component: AdminComponent,
     children: [
-      {
-        path: '',
-        redirectTo: '/dashboard',
-        pathMatch: 'full'
-      },
+      // {
+      //   path: '',
+      //   redirectTo: '/dashboard',
+      //   pathMatch: 'full'
+      // },
       {
         path: 'dashboard',
         loadComponent: () => import('./demo/dashboard/dash-analytics.component').then((c) => c.DashAnalyticsComponent)
@@ -90,20 +110,6 @@ const routes: Routes = [
       }
     ]
   },
-  {
-    path: '',
-    component: GuestComponent,
-    children: [
-      {
-        path: 'login',
-        loadComponent: () => import('./demo/pages/authentication/login/login.component').then((c) => c.LoginComponent)
-      },
-      {
-        path: 'signup',
-        loadComponent: () => import('./demo/pages/authentication/signup/signup.component').then((c) => c.SignupComponent)
-      }
-    ]
-  }
 ];
 
 @NgModule({

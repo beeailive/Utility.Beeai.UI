@@ -6,6 +6,7 @@ import { Router, RouterModule } from '@angular/router';
 
 // project import
 import { AuthService } from 'src/app/core/services/auth.service';
+import { ChirpstackService } from 'src/app/service/chirpstack.service';
 
 @Component({
   selector: 'app-login',
@@ -15,15 +16,17 @@ import { AuthService } from 'src/app/core/services/auth.service';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
-  private authService = inject(AuthService);
-  private router = inject(Router);
-
+private authService = inject(AuthService);
+private router = inject(Router);
+  private chirpstack = inject(ChirpstackService);
+ 
   email = '';
   password = '';
   loading = false;
   error: string | null = null;
 
-  onSubmit(): void {
+
+  osnSubmit(): void {
     if (!this.email || !this.password) {
       this.error = 'Please enter email and password';
       return;
@@ -43,5 +46,21 @@ export class LoginComponent {
       this.router.navigate(['/dashboard']);
     }, 1000);
   }
+
+
+  
+  onSubmit() {
+    this.error = '';
+    this.chirpstack.login(this.email, this.password)
+      .then(response => {
+        console.log('Login success:', response);
+        this.router.navigate(['/dashboard']);
+      })
+      .catch(err => {
+        console.error(err);
+        this.error = 'Login failed. Please check your credentials.';
+      });
+  }
+
 }
 
