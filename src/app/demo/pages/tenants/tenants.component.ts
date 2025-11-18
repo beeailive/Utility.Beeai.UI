@@ -2,7 +2,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+ 
 
 // project import
 import { SharedModule } from 'src/app/theme/shared/shared.module';
@@ -13,7 +13,7 @@ import { ToastService } from 'src/app/core/services/toast.service';
 
 @Component({
   selector: 'app-tenants',
-  imports: [SharedModule, CommonModule, FormsModule, RouterLink],
+  imports: [SharedModule, CommonModule, FormsModule],
   templateUrl: './tenants.component.html',
   styleUrls: ['./tenants.component.scss']
 })
@@ -151,7 +151,7 @@ export class TenantsComponent implements OnInit {
     const pages: number[] = [];
     const maxPagesToShow = 5;
     let startPage = Math.max(1, this.currentPage - Math.floor(maxPagesToShow / 2));
-    let endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
+    const endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
 
     if (endPage - startPage < maxPagesToShow - 1) {
       startPage = Math.max(1, endPage - maxPagesToShow + 1);
