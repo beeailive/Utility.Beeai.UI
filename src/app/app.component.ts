@@ -6,6 +6,7 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { SpinnerComponent } from './theme/shared/components/spinner/spinner.component';
 import { ToastContainerComponent } from './theme/shared/components/toast/toast.component';
 import { AuthService } from './core/services/auth.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -19,10 +20,8 @@ export class AppComponent implements OnInit {
 
   // life cycle event
   ngOnInit() {
-    // Set static token for development (TEMPORARY - Remove in production)
-    const staticToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjaGlycHN0YWNrIiwiaXNzIjoiY2hpcnBzdGFjayIsInN1YiI6IjgwMmFhOTNiLWY4ZDItNDZkMC1iNmE2LTk2MDYzY2Q1ODI3YSIsInR5cCI6ImtleSJ9.lzeF2I5fqQgytgiM4hxDpdw1IKsQXwaykhHnF9M8350'; // Replace with your actual token
-    this.authService.setToken(staticToken);
-
+   
+    this.authService.setToken(environment.token);
     this.router.events.subscribe((evt) => {
       if (!(evt instanceof NavigationEnd)) {
         return;

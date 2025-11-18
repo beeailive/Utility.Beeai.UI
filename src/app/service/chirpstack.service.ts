@@ -1,29 +1,61 @@
-import { Injectable } from '@angular/core';
-import { InternalServiceClient } from '@chirpstack/chirpstack-api-grpc-web/api/internal_grpc_web_pb';
-import { LoginRequest } from '@chirpstack/chirpstack-api-grpc-web/api/internal_pb';
-
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { Router } from '@angular/router';
+import { catchError } from 'rxjs';
+import { environment } from 'src/environments/environment';
 @Injectable({
   providedIn: 'root'
 })
 export class ChirpstackService {
-  private client: InternalServiceClient;
+  private http = inject(HttpClient);
+  private _router = inject(Router);
+  private headerOptions: { headers: HttpHeaders } = { headers: new HttpHeaders() };
 
+
+  private setHeaders() {
+    return {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+  }
   constructor() {
-    // Replace with your ChirpStack gRPC-Web endpoint
-    this.client = new InternalServiceClient('http://136.112.165.113:8080/');
+
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  login(username: string, password: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-      const req = new LoginRequest();
-      req.setEmail(username);
-      req.setPassword(password);
 
-      this.client.login(req, {}, (err, response) => {
-        if (err) reject(err);
-        else resolve(response.toObject());
-      });
-    });
+  loginuser(apiUrl: string, userid: string, password: string) {
+    return this.http.post(
+      environment.baseapiUrl + apiUrl,
+      { email: userid, password: password }, // do NOT stringify
+      {
+        headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+      }
+    ).pipe(
+      catchError(async (error) => this.HandleError(error))
+    );
+
+
   }
+
+  HandleError(error: unknown) {
+
+    if (typeof error === 'object' && error !== null) {
+      const err = (error as HttpErrorResponse).error; // Only here we cast
+
+      if (err?.status === 401) {
+        this._router.navigate(['/login']);
+        return;
+      }
+
+      if (err?.status === 409) {
+        console.log('warning', err.error);
+        return;
+      }
+    }
+
+    console.error("Unhandled error:", error);
+  }
+
+
 }
