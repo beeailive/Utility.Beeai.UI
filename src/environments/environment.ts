@@ -7,9 +7,9 @@ import packageInfo from '../../package.json';
 export const environment = {
   appVersion: packageInfo.version,
   production: false,
-    apiUrl: "http://223.239.130.108:8090",
+    apiUrl: "http://223.239.130.108:8090/api",
     baseapiUrl: "http://223.239.130.108:5000/",
-  token : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjaGlycHN0YWNrIiwiaXNzIjoiY2hpcnBzdGFjayIsInN1YiI6IjgwMmFhOTNiLWY4ZDItNDZkMC1iNmE2LTk2MDYzY2Q1ODI3YSIsInR5cCI6ImtleSJ9.lzeF2I5fqQgytgiM4hxDpdw1IKsQXwaykhHnF9M8350"
+    token : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjaGlycHN0YWNrIiwiaXNzIjoiY2hpcnBzdGFjayIsInN1YiI6IjY3NjBjNmUyLWE2YmItNGE2NS1hMmViLThhNzliNzdjYTQ1MyIsInR5cCI6ImtleSJ9.z24Ry0B0Hr6cf2OZO1H2nS9aNu7a1phHbYjAra60oOw"
 };
 
 /*

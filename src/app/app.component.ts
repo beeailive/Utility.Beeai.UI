@@ -21,7 +21,7 @@ export class AppComponent implements OnInit {
   // life cycle event
   ngOnInit() {
    
-    this.authService.setToken(environment.token);
+    this.authService.setToken("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjaGlycHN0YWNrIiwiaXNzIjoiY2hpcnBzdGFjayIsInN1YiI6IjY3NjBjNmUyLWE2YmItNGE2NS1hMmViLThhNzliNzdjYTQ1MyIsInR5cCI6ImtleSJ9.z24Ry0B0Hr6cf2OZO1H2nS9aNu7a1phHbYjAra60oOw");
     this.router.events.subscribe((evt) => {
       if (!(evt instanceof NavigationEnd)) {
         return;
