@@ -10,7 +10,7 @@ export class ChirpstackService {
   private http = inject(HttpClient);
   private _router = inject(Router);
   private headerOptions: { headers: HttpHeaders } = { headers: new HttpHeaders() };
-
+   public  token = localStorage.getItem('authtoken') as string;
 
   private setHeaders() {
     return {
@@ -22,6 +22,25 @@ export class ChirpstackService {
   constructor() {
 
   }
+
+
+   Post(apiUrl: string, datamoel : unknown) {
+    return this.http.post(
+      environment.baseapiUrl + apiUrl,  JSON.stringify(datamoel),   {
+        headers: new HttpHeaders(
+          { 
+            'Content-Type': 'application/json' ,
+             'Accept': 'application/json',
+            'Authorization': 'Bearer ' + this.token,
+          })
+      }
+    ).pipe(
+      catchError(async (error) => this.HandleError(error))
+    );
+
+
+  }
+
 
 
   loginuser(apiUrl: string, userid: string, password: string) {

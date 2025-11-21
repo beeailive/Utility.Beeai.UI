@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ChirpstackService } from 'src/app/service/chirpstack.service';
 
 @Component({
   selector: 'app-create-user',
@@ -9,31 +10,33 @@ import { CommonModule } from '@angular/common';
   styleUrl: './create-user.scss'
 })
 export class CreateUser {
-userForm: FormGroup;
+  userForm: FormGroup;
   showCreateForm = false;
-
+  private chirpstack = inject(ChirpstackService);
   constructor(private fb: FormBuilder) {
     this.userForm = this.fb.group({
-      // Tenant
-      name: ['', Validators.required],
-      description: [''],
-      maxGatewayCount: [null],
-      maxDeviceCount: [null],
-      canHaveGateways: [false],
-      privateGatewaysUp: [false],
-      privateGatewaysDown: [false],
 
-      // User
       email: ['', [Validators.required, Validators.email]],
+      id: [''],
       password: ['', [Validators.required, Validators.minLength(6)]],
       isActive: [true],
-      notes: [''],
-
-      // Permissions
       isAdmin: [false],
+      note: [''],
+      maxDeviceCount: [0],
+      maxGatewayCount: [0],
+      Tanentname: ['', Validators.required],
+      privateGatewaysUp: [false],
+      canHaveGateways: [false],
+      privateGatewaysDown: [false],
       isTenantAdmin: [false],
+      isDeviceAdmin: [false],
       isGatewayAdmin: [false],
-      isDeviceAdmin: [false]
+      tenantId: [null],
+      description: ['']
+      // Permissions
+
+
+
     });
   }
 
@@ -51,10 +54,24 @@ userForm: FormGroup;
 
   onSubmit() {
     if (this.userForm.valid) {
-      console.log('Form Submitted:', this.userForm.value);
-      // API call here
-      alert('Tenant + User Created!');
-      this.toggleCreateForm();
+      this.chirpstack.Post('api/tenant/createtenant', this.userForm.value).subscribe({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        next: (x: any) => {
+          if (x.message === 'User registered successfully') {
+            alert(x.message)
+            this.toggleCreateForm();
+          }
+          else {
+            alert(x.message)
+          }
+
+        },
+        error: (error) => {
+             alert(error)
+          console.log(error)
+        }
+      });
+
     }
   }
 }

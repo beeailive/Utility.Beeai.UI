@@ -51,7 +51,7 @@ export class DevicesComponent implements OnInit, OnDestroy {
         this.devices = response.result;
         this.totalCount = response.totalCount;
         this.loading = false;
-        console.log('✅ Loaded devices:', this.totalCount);
+         
       },
       error: (err) => {
         this.error = 'Failed to load devices: ' + err.message;
