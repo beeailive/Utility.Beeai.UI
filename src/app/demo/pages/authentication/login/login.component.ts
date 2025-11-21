@@ -7,6 +7,7 @@ import { Router, RouterModule } from '@angular/router';
 // project import
 import { AuthService } from 'src/app/core/services/auth.service';
 import { ChirpstackService } from 'src/app/service/chirpstack.service';
+ 
 
 @Component({
   selector: 'app-login',
@@ -19,7 +20,7 @@ export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private chirpstack = inject(ChirpstackService);
-
+ 
   email = '';
   password = '';
   loading = false;
@@ -52,15 +53,14 @@ export class LoginComponent {
 
     this.chirpstack.loginuser('api/auth/login', this.email, this.password).subscribe({
       next: (x: any) => {
-       
-        if(x.message==='Login successful')
-        {
-            this._userdata = x.user;
+
+        if (x.message === 'Login successful') {
+          this._userdata = x.user;
           localStorage.setItem('loggedUser', JSON.stringify(this._userdata));
           localStorage.setItem('authtoken', x.token);
-          this.router.navigate(['/dashboard']); 
+          this.router.navigate(['/dashboard']);
         }
-         
+
       },
       error: (error) => {
         console.log(error)

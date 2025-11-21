@@ -8,8 +8,10 @@ export const environment = {
   appVersion: packageInfo.version,
   production: false,
     apiUrl: "http://223.239.130.108:8090/api",
-    baseapiUrl: "http://223.239.130.108:5000/",
-    token : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjaGlycHN0YWNrIiwiaXNzIjoiY2hpcnBzdGFjayIsInN1YiI6IjY3NjBjNmUyLWE2YmItNGE2NS1hMmViLThhNzliNzdjYTQ1MyIsInR5cCI6ImtleSJ9.z24Ry0B0Hr6cf2OZO1H2nS9aNu7a1phHbYjAra60oOw"
+    //baseapiUrl: "http://223.239.130.108:5000/",
+    baseapiUrl: "http://localhost:5000/",
+    token : "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjaGlycHN0YWNrIiwiaXNzIjoiY2hpcnBzdGFjayIsInN1YiI6IjY3NjBjNmUyLWE2YmItNGE2NS1hMmViLThhNzliNzdjYTQ1MyIsInR5cCI6ImtleSJ9.z24Ry0B0Hr6cf2OZO1H2nS9aNu7a1phHbYjAra60oOw",
+    SECRET_KEY: "beeailive!2029"
 };
 
 /*

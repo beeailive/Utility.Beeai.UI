@@ -143,7 +143,7 @@ export class DeviceService {
     let params = new HttpParams();
     if (request.limit) params = params.set('limit', request.limit.toString());
     if (request.offset) params = params.set('offset', request.offset.toString());
-
+  
     return this.http.get<ListDeviceEventsResponse>(`${this.apiUrl}/devices/${request.devEui}/events`, { params });
   }
 
